@@ -1,0 +1,19 @@
+target_sources(${EXC_OUT}
+    PRIVATE
+        ActionInitialization.cc
+        Analysis.cc
+        CMakeLists.txt
+        CrystalHit.cc
+        CrystalSensitiveDetector.cc
+        DetectorConstruction.cc
+        EventAction.cc
+        GlobalConfigs.cc
+        Materials.cc
+        PhysicsList.cc
+        PrimaryGeneratorAction.cc
+        RunAction.cc
+        SiHit.cc
+        SiSensitiveDetector.cc
+        SteppingAction.cc
+        VirtualHit.cc
+)

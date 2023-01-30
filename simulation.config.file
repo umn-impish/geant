@@ -1,0 +1,29 @@
+attenuator-choice nothing
+optical-draw-frequency 1
+save-prefix grips-test
+save-each-cryst-hit-energy 0
+save-scintillator-positions 0
+
+# now we can add comments. hooray
+scintillator-material cebr3
+scintillator-time-const 50
+scintillator-length 40
+scintillator-width 40
+scintillator-depth 5
+scintillator-back-finish rough
+scintillator-small-areas-finish polished
+scintillator-large-areas-finsh polished
+scintillator-cladding-type teflon
+build-scintillator-cladding 1
+
+sipms-per-row 8
+num-sipm-rows 1
+sipm-spacing 1
+save-sipm-positions 0
+save-sipm-energies 0
+sipm-air-gap-thickness 0
+
+scintillator-cladding-air-gap-thickness
+light-guide-thickness 2
+light-guide-cladding-type teflon
+build-light-guide-cladding 1
