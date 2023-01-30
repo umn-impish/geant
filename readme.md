@@ -1,3 +1,5 @@
+# IMPRESS aboard GRIPS
+# Adapted from [this example](https://github.com/settwi/g4-basic-scintillation)
 ## File output
 
 files output into folder of format 'run#-date-time'
