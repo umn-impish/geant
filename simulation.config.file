@@ -7,9 +7,9 @@ save-scintillator-positions 0
 # now we can add comments. hooray
 scintillator-material cebr3
 scintillator-time-const 50
-scintillator-length 40
+scintillator-length 5
 scintillator-width 40
-scintillator-depth 5
+scintillator-depth 40
 scintillator-back-finish rough
 scintillator-small-areas-finish polished
 scintillator-large-areas-finsh polished
