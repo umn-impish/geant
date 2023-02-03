@@ -25,21 +25,23 @@ class DetectorConstruction : public G4VUserDetectorConstruction
   private:
     void makeWorld();
 
-    void makeCeBr3();
-    void finishCrystalSides();
-    void attachCrystalSensitiveDetector();
+    void makeScintillator();
+    void finishScintillatorSides();
+    void attachScintillatorSensitiveDetector();
 
+    void makeReflector();
     void makeTeflon();
-    void makeAluminum();
+    void makeEsr();
+    void makeLightguide();
 
-    void makeSiDetector();
-    void attachSiSensitiveDetector();
+    void makeOpticalDetector();
+    void attachOpticalSensitiveDetector();
 
     G4VPhysicalVolume* worldPlacement;
     G4LogicalVolume* worldLogVol;
-    G4VPhysicalVolume* crystPlacement;
-    G4LogicalVolume* crystLogVol;
-    G4LogicalVolume* siLogVol;
+    G4VPhysicalVolume* scintPlacement;
+    G4LogicalVolume* scintLogVol;
+    G4LogicalVolume* opticalDetectorLogVol;
 
     constexpr static G4double CRYST_SIZE = 2 * cm;
 
@@ -50,7 +52,7 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     constexpr static G4double AL_THICK = 1 * mm;
     constexpr static G4double AIR_GAP = 1 * um;
 
-    G4Cache<CrystalSensitiveDetector*> crystalSensDet;
-    G4Cache<SiSensitiveDetector*> siSensDet;
+    G4Cache<CrystalSensitiveDetector*> scintSensDet;
+    G4Cache<SiSensitiveDetector*> opticalSensDet;
 };
 }

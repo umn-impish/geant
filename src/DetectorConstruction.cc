@@ -1,6 +1,9 @@
+#include <unordered_map>
+
 #include "DetectorConstruction.hh"
 #include "CrystalSensitiveDetector.hh"
 #include "SiSensitiveDetector.hh"
+#include <GlobalConfigs.hh>
 
 #include "G4RunManager.hh"
 #include "G4NistManager.hh"
@@ -23,27 +26,63 @@
 
 namespace ImpressForGrips
 {
-static G4OpticalSurface* siOpticalSurface();
+static G4OpticalSurface* opticalDetectorSurface();
 
 // anonymous namespace so other files can't access these
 namespace {
   G4bool checkOverlaps = true;
-  void attachTeflonOpticalSurf(G4LogicalVolume* lv)
+  void attachLambertianOpticalSurface(G4LogicalVolume* lv)
   {
-    G4ThreadLocal static G4OpticalSurface* ts = nullptr;
-    if (ts == nullptr) {
-      ts = new G4OpticalSurface("teflon_optical_surf");
-      ts->SetType(dielectric_dielectric);
-      ts->SetModel(unified);
-      ts->SetFinish(groundfrontpainted);
-      ts->SetSigmaAlpha(0.);
-      ts->SetMaterialPropertiesTable(
+    G4ThreadLocal static G4OpticalSurface* surf = nullptr;
+    if (surf == nullptr) {
+      surf = new G4OpticalSurface("lambertian-optical-surface");
+      surf->SetModel(unified);
+      surf->SetType(dielectric_dielectric);
+      surf->SetFinish(groundfrontpainted);
+      surf->SetSigmaAlpha(0.);
+      surf->SetMaterialPropertiesTable(
           G4NistManager::Instance()->
           FindOrBuildMaterial(Materials::kNIST_TEFLON)->
           GetMaterialPropertiesTable());
     }
 
-    (void) new G4LogicalSkinSurface("teflon_skin_surf", lv, ts);
+    (void) new G4LogicalSkinSurface("lambertian-skin-surface", lv, surf);
+  }
+
+  void attachSpecularOpticalSurface(G4LogicalVolume* lv)
+  {
+    G4ThreadLocal static G4OpticalSurface* surf = nullptr;
+    if (surf == nullptr) {
+      surf = new G4OpticalSurface("specular-optical-surface");
+      surf->SetModel(unified);
+      surf->SetType(dielectric_metal);
+      surf->SetFinish(polished);
+      surf->SetSigmaAlpha(0.);
+      auto* pt = new G4MaterialPropertiesTable();
+
+      const std::unordered_map<
+        const char*,
+        const std::vector<G4double>
+      > props = {
+          // want everything to reflect off
+          {"REFLECTIVITY", {1, 1}},
+          {"TRANSMITTANCE", {0, 0}},
+          {"EFFICIENCY", {0, 0}},
+          // dielectric_metal only uses spike reflection
+          {"SPECULARSPIKECONSTANT", {1, 1}},
+          {"SPECULARLOBECONSTANT", {0, 0}},
+          {"BACKSCATTERCONSTANT", {0, 0}},
+      };
+
+      const std::vector<G4double> energies = {1e-3*eV, 6*eV};
+      for (const auto& [name, vals] : props) {
+        pt->AddProperty(name, energies, vals);
+      }
+
+      surf->SetMaterialPropertiesTable(pt);
+    }
+
+    (void) new G4LogicalSkinSurface("specular-skin-surface", lv, surf);
   }
 }
 
@@ -61,21 +100,19 @@ DetectorConstruction::~DetectorConstruction()
 G4VPhysicalVolume* DetectorConstruction::Construct()
 {  
   makeWorld();
-  makeCeBr3();
-  finishCrystalSides();
-
-  bool doMakeTeflon = true;
-  if (doMakeTeflon) makeTeflon();
-
-  makeSiDetector();
+  makeScintillator();
+  finishScintillatorSides();
+  makeReflector();
+  makeLightguide();
+  makeOpticalDetector();
   
   return worldPlacement;
 }
 
 void DetectorConstruction::ConstructSDandField()
 {
-  attachCrystalSensitiveDetector();
-  attachSiSensitiveDetector();
+  attachScintillatorSensitiveDetector();
+  attachOpticalSensitiveDetector();
 }
 
 void DetectorConstruction::makeWorld()
@@ -83,13 +120,13 @@ void DetectorConstruction::makeWorld()
   G4VisAttributes va;
 
   G4Material* vac = G4Material::GetMaterial(Materials::kVACUUM);
-  const G4double worldSize = 5*cm;
+  const G4double worldSize = 10*cm;
   G4Box* worldBox =    
     new G4Box("World",
        0.5*worldSize, 0.5*worldSize, 0.5*worldSize);
       
   worldLogVol = new G4LogicalVolume(
-      worldBox, vac, "World");
+      worldBox, vac, "world-lv");
   va.SetColor(1, 1, 1, 0.05);
   va.SetVisibility(true);
   worldLogVol->SetVisAttributes(va);
@@ -97,49 +134,61 @@ void DetectorConstruction::makeWorld()
   worldPlacement = 
     new G4PVPlacement(
       nullptr, G4ThreeVector(), worldLogVol,
-      "world", nullptr, false, 0, checkOverlaps);
+      "world-placement", nullptr, false, 0, checkOverlaps);
 }
 
-void DetectorConstruction::makeSiDetector()
+void DetectorConstruction::makeOpticalDetector()
 {
   G4VisAttributes va;
   auto* si = G4NistManager::Instance()->FindOrBuildMaterial(Materials::kNIST_SI);
   auto* siBox = new G4Box(
-      "si_box", SI_SIDE/2, SI_SIDE/2, SI_THICK/2);
+      "optical-det-box", SI_SIDE/2, SI_SIDE/2, SI_THICK/2);
 
-  siLogVol = new G4LogicalVolume(
-    siBox, si, "si_log");
+  opticalDetectorLogVol = new G4LogicalVolume(
+      siBox, si, "optical-det-log");
   va.SetColor(0, 0, 1, 0.5);
   va.SetVisibility(true);
-  siLogVol->SetVisAttributes(va);
+  opticalDetectorLogVol->SetVisAttributes(va);
 
   G4ThreeVector translate(0, 0, CRYST_SIZE/2 + SI_THICK/2);
   (void) new G4PVPlacement(
-    nullptr, translate, siLogVol,
-    "si_phys", worldLogVol, false, 0, checkOverlaps);
+    nullptr, translate, opticalDetectorLogVol,
+    "optical-det-phys", worldLogVol, false, 0, checkOverlaps);
 
-    auto* siSurf = siOpticalSurface();
+    auto* surf = opticalDetectorSurface();
     (void) new G4LogicalSkinSurface(
-      "si_skin", siLogVol, siSurf);
+      "optical-det-skin", opticalDetectorLogVol, surf);
 }
 
-void DetectorConstruction::makeCeBr3()
+void DetectorConstruction::makeScintillator()
 {
   G4VisAttributes va;
-  auto* cebr3 = G4Material::GetMaterial(Materials::kCEBR3);
+  const auto& gc = GlobalConfigs::instance();
+  const auto& choice = gc.configOption<std::string>(
+      GlobalConfigs::kSCINTILLATOR_MATERIAL);
 
-  auto* crystBox = new G4Box(
-    "cebr3_box", CRYST_SIZE/2, CRYST_SIZE/2, CRYST_SIZE/2);
+  const auto converted = Materials::selectScintillator(choice);
+  G4cout << "selected material is " << converted << G4endl;
+  auto* scintMat = G4Material::GetMaterial(converted);
 
-  crystLogVol = new G4LogicalVolume(
-    crystBox, cebr3, "cebr3_log");
+  const auto x = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_WIDTH);
+  const auto y = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_LENGTH);
+  const auto z = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_DEPTH);
+  auto* scintBox = new G4Box("scint-box", x/2, y/2, z/2);
+
+  scintLogVol = new G4LogicalVolume(scintBox, scintMat, "scint-log");
   va.SetColor(0.35, 0.5, 0.92, 0.8);
   va.SetVisibility(true);
-  crystLogVol->SetVisAttributes(va);
+  scintLogVol->SetVisAttributes(va);
 
-  crystPlacement = new G4PVPlacement(
-    nullptr, G4ThreeVector(), crystLogVol,
-    "cebr3_phys", worldLogVol, false, 0, checkOverlaps);
+  scintPlacement = new G4PVPlacement(
+    nullptr, G4ThreeVector(), scintLogVol,
+    "scint-placement", worldLogVol, false, 0, checkOverlaps);
+}
+
+void DetectorConstruction::makeReflector()
+{
+  // TODO: add
 }
 
 void DetectorConstruction::makeTeflon()
@@ -169,49 +218,59 @@ void DetectorConstruction::makeTeflon()
   va.SetColor(0, 1, 0, 0.1);
   va.SetVisibility(true);
   ptfeLogVol->SetVisAttributes(va);
-  attachTeflonOpticalSurf(ptfeLogVol);
+  attachLambertianOpticalSurface(ptfeLogVol);
 
   (void) new G4PVPlacement(
     nullptr, G4ThreeVector(), ptfeLogVol,
     "ptfe_phys", worldLogVol, false, 0, checkOverlaps);
 }
 
-
-void DetectorConstruction::attachCrystalSensitiveDetector()
+void DetectorConstruction::makeEsr()
 {
-  auto* csd = new CrystalSensitiveDetector("crystal_sens_det");
-  crystalSensDet.Put(csd);
-
-  G4SDManager::GetSDMpointer()->AddNewDetector(csd);
-  crystLogVol->SetSensitiveDetector(csd);
+  // TODO: add
 }
 
-void DetectorConstruction::attachSiSensitiveDetector()
-{
-  auto* sisd = new SiSensitiveDetector("si_sens_det");
-  siSensDet.Put(sisd);
 
-  G4SDManager::GetSDMpointer()->AddNewDetector(sisd);
-  siLogVol->SetSensitiveDetector(sisd);
+void DetectorConstruction::attachScintillatorSensitiveDetector()
+{
+  auto* sd = new CrystalSensitiveDetector("crystal-sens-det");
+  scintSensDet.Put(sd);
+
+  G4SDManager::GetSDMpointer()->AddNewDetector(sd);
+  scintLogVol->SetSensitiveDetector(sd);
 }
 
-void DetectorConstruction::finishCrystalSides()
+void DetectorConstruction::attachOpticalSensitiveDetector()
 {
-  auto* surf = new G4OpticalSurface("cebr3_optical_edge");
+  auto* sd = new SiSensitiveDetector("optical-sens-det");
+  opticalSensDet.Put(sd);
+
+  G4SDManager::GetSDMpointer()->AddNewDetector(sd);
+  opticalDetectorLogVol->SetSensitiveDetector(sd);
+}
+
+void DetectorConstruction::finishScintillatorSides()
+{
+  auto* surf = new G4OpticalSurface("");
   // See G4 documentation on UNIFIED model
   surf->SetType(dielectric_LUTDAVIS);
   surf->SetModel(DAVIS);
   surf->SetFinish(Rough_LUT);
   (void) new G4LogicalBorderSurface(
-    "cebr3_logical_border_surf", 
-    crystPlacement, worldPlacement, surf);
+    "scint-logical-border-surf", 
+    scintPlacement, worldPlacement, surf);
 }
 
-static G4OpticalSurface* siOpticalSurface()
+void DetectorConstruction::makeLightguide()
+{
+  // TODO: add
+}
+
+static G4OpticalSurface* opticalDetectorSurface()
 {
     static G4ThreadLocal G4OpticalSurface* ss = nullptr;
     if (ss) return ss;
-    ss = new G4OpticalSurface("si_surf");
+    ss = new G4OpticalSurface("optical-det-surf");
     ss->SetMaterialPropertiesTable(
         G4NistManager::Instance()
         ->FindOrBuildMaterial(Materials::kNIST_SI)
