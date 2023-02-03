@@ -8,4 +8,6 @@ target_sources(${EXC_OUT}
         QuartzProperties.hh
         SiProperties.hh
         TeflonProperties.hh
+        LYSOProperties.hh
+        GaGGProperties.hh
 )

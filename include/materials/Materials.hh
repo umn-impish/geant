@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <cassert>
+#include <string>
 
 #include "G4Exception.hh"
 #include "G4MaterialPropertiesTable.hh"
@@ -18,6 +19,8 @@
 #include "QuartzProperties.hh"
 #include "SiProperties.hh"
 #include "TeflonProperties.hh"
+#include "LYSOProperties.hh"
+#include "GaGGProperties.hh"
 
 /*
  * Empirical data sources
@@ -33,6 +36,8 @@ namespace ImpressForGrips
 {
 namespace Materials
 {
+    std::string selectScintillator(const std::string& choice);
+
     static const G4String kVACUUM = "vacuum";
     static const G4double VACUUM_MOLAR_DENSITY = 1.01 * g / mole;
     static const G4double VACUUM_ATOMIC_NUMBER = 1.0;
