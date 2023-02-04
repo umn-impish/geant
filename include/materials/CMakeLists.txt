@@ -10,4 +10,5 @@ target_sources(${EXC_OUT}
         TeflonProperties.hh
         LYSOProperties.hh
         GaGGProperties.hh
+        ESRProperties.hh
 )

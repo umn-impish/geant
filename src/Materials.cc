@@ -15,6 +15,7 @@ namespace Materials {
     void makeBeryllium();
     void makeHousingAluminumAlloy();
     void makeSilicon();
+    void makeEsr();
 }
 
 namespace {
@@ -45,6 +46,8 @@ void makeMaterials()
         makeAluminum();
     if (!G4Material::GetMaterial(kBE))
         makeBeryllium();
+    if (!G4Material::GetMaterial(kESR))
+        makeEsr();
 }
 
 std::string selectScintillator(const std::string& choice)
@@ -70,6 +73,17 @@ std::string selectScintillator(const std::string& choice)
     }
 
     return "";
+}
+
+G4Material* selectReflectorMaterial(const std::string& choice)
+{
+    using ch = std::unordered_map<std::string, std::string>;
+    const ch REFLECTOR_CHOICES = {
+        {"teflon", kNIST_TEFLON},
+        {"esr", kESR}
+    };
+
+    return G4Material::GetMaterial(REFLECTOR_CHOICES.at(choice));
 }
 
 void configureTeflon()
@@ -242,5 +256,27 @@ void makeSilicon()
 
     si->SetMaterialPropertiesTable(simpt);
 }
+
+void makeEsr()
+{
+    /**
+     * ChatGPT approximate reflector film composition
+     * Aluminum (Al): Approximately 2% - 5%
+     * Carbon    (C): Approximately 60% - 70%
+     * Hydrogen  (H): Approximately 10% - 12%
+     * Oxygen    (O): Approximately 15% - 25%
+     * Nitrogen  (N): Less than 1%
+     *
+     * so neglect nitrogen
+     **/
+    auto* esr = new G4Material(kESR, 1.5 * g/cm3, 4, kStateSolid, SATELLITE_TEMP);
+
+    auto* nm = G4NistManager::Instance();
+    esr->AddMaterial(nm->FindOrBuildMaterial("G4_Al"), 0.02);
+    esr->AddMaterial(nm->FindOrBuildMaterial("G4_C"), 0.65);
+    esr->AddMaterial(nm->FindOrBuildMaterial("G4_H"), 0.11);
+    esr->AddMaterial(nm->FindOrBuildMaterial("G4_O"), 0.22);
+}
+
 }
 }

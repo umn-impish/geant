@@ -30,8 +30,6 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     void attachScintillatorSensitiveDetector();
 
     void makeReflector();
-    void makeTeflon();
-    void makeEsr();
     void makeLightguide();
 
     void makeOpticalDetector();
@@ -39,18 +37,16 @@ class DetectorConstruction : public G4VUserDetectorConstruction
 
     G4VPhysicalVolume* worldPlacement;
     G4LogicalVolume* worldLogVol;
+    G4Box* scintBox;
     G4VPhysicalVolume* scintPlacement;
     G4LogicalVolume* scintLogVol;
     G4LogicalVolume* opticalDetectorLogVol;
 
-    constexpr static G4double CRYST_SIZE = 2 * cm;
-
     constexpr static G4double SI_SIDE = 2 * cm;
     constexpr static G4double SI_THICK = 0.5 * mm;
 
-    constexpr static G4double TEF_THICK = 1 * mm;
-    constexpr static G4double AL_THICK = 1 * mm;
-    constexpr static G4double AIR_GAP = 1 * um;
+    // 4x 80 micron wrapping
+    constexpr static G4double REFLECTOR_THICK = 320 * micrometer;
 
     G4Cache<CrystalSensitiveDetector*> scintSensDet;
     G4Cache<SiSensitiveDetector*> opticalSensDet;

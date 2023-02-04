@@ -1,3 +1,4 @@
+#include <functional>
 #include <unordered_map>
 
 #include "DetectorConstruction.hh"
@@ -56,10 +57,12 @@ namespace {
       surf = new G4OpticalSurface("specular-optical-surface");
       surf->SetModel(unified);
       surf->SetType(dielectric_metal);
-      surf->SetFinish(polished);
+      surf->SetFinish(ground);
       surf->SetSigmaAlpha(0.);
       auto* pt = new G4MaterialPropertiesTable();
 
+      // TODO: maybe make this customizable?
+      const double DEFECT_PROB = 0.01;
       const std::unordered_map<
         const char*,
         const std::vector<G4double>
@@ -68,8 +71,7 @@ namespace {
           {"REFLECTIVITY", {1, 1}},
           {"TRANSMITTANCE", {0, 0}},
           {"EFFICIENCY", {0, 0}},
-          // dielectric_metal only uses spike reflection
-          {"SPECULARSPIKECONSTANT", {1, 1}},
+          {"SPECULARSPIKECONSTANT", {1 - DEFECT_PROB, 1 - DEFECT_PROB}},
           {"SPECULARLOBECONSTANT", {0, 0}},
           {"BACKSCATTERCONSTANT", {0, 0}},
       };
@@ -84,12 +86,45 @@ namespace {
 
     (void) new G4LogicalSkinSurface("specular-skin-surface", lv, surf);
   }
+
+  std::function<void(G4LogicalVolume*)>
+  selectSurfaceAttachmentFunction(const std::string& choice)
+  {
+    using AttachFunc = std::function<void(G4LogicalVolume*)>;
+    const std::unordered_map<std::string, AttachFunc>
+    ATTACH_SURFACE_OPTIONS = {
+        {"teflon", attachLambertianOpticalSurface},
+        {"esr", attachSpecularOpticalSurface}
+    };
+
+    AttachFunc f;
+    try {
+      f = ATTACH_SURFACE_OPTIONS.at(choice);
+    }
+    catch (std::out_of_range& e) {
+      std::stringstream ss;
+      ss << choice << " is not a valid reflector." << std::endl
+         << "valid are:" << std::endl;
+      for (const auto& [k, _] : ATTACH_SURFACE_OPTIONS) {
+        ss << "  - " << k << std::endl;
+      }
+      throw std::runtime_error(ss.str());
+    }
+
+    return f;
+  }
 }
 
 DetectorConstruction::DetectorConstruction() :
   G4VUserDetectorConstruction(),
   worldPlacement(nullptr),
-  worldLogVol(nullptr)
+  worldLogVol(nullptr),
+  scintBox(nullptr),
+  scintPlacement(nullptr),
+  scintLogVol(nullptr),
+  opticalDetectorLogVol(nullptr),
+  scintSensDet(),
+  opticalSensDet()
 {
   Materials::makeMaterials();
 }
@@ -122,8 +157,8 @@ void DetectorConstruction::makeWorld()
   G4Material* vac = G4Material::GetMaterial(Materials::kVACUUM);
   const G4double worldSize = 10*cm;
   G4Box* worldBox =    
-    new G4Box("World",
-       0.5*worldSize, 0.5*worldSize, 0.5*worldSize);
+    new G4Box(
+      "world", 0.5*worldSize, 0.5*worldSize, 0.5*worldSize);
       
   worldLogVol = new G4LogicalVolume(
       worldBox, vac, "world-lv");
@@ -139,25 +174,7 @@ void DetectorConstruction::makeWorld()
 
 void DetectorConstruction::makeOpticalDetector()
 {
-  G4VisAttributes va;
-  auto* si = G4NistManager::Instance()->FindOrBuildMaterial(Materials::kNIST_SI);
-  auto* siBox = new G4Box(
-      "optical-det-box", SI_SIDE/2, SI_SIDE/2, SI_THICK/2);
-
-  opticalDetectorLogVol = new G4LogicalVolume(
-      siBox, si, "optical-det-log");
-  va.SetColor(0, 0, 1, 0.5);
-  va.SetVisibility(true);
-  opticalDetectorLogVol->SetVisAttributes(va);
-
-  G4ThreeVector translate(0, 0, CRYST_SIZE/2 + SI_THICK/2);
-  (void) new G4PVPlacement(
-    nullptr, translate, opticalDetectorLogVol,
-    "optical-det-phys", worldLogVol, false, 0, checkOverlaps);
-
-    auto* surf = opticalDetectorSurface();
-    (void) new G4LogicalSkinSurface(
-      "optical-det-skin", opticalDetectorLogVol, surf);
+  // TODO: implement
 }
 
 void DetectorConstruction::makeScintillator()
@@ -171,10 +188,10 @@ void DetectorConstruction::makeScintillator()
   G4cout << "selected material is " << converted << G4endl;
   auto* scintMat = G4Material::GetMaterial(converted);
 
-  const auto x = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_WIDTH);
-  const auto y = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_LENGTH);
-  const auto z = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_DEPTH);
-  auto* scintBox = new G4Box("scint-box", x/2, y/2, z/2);
+  const auto x = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_WIDTH) * mm;
+  const auto y = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_LENGTH) * mm;
+  const auto z = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_DEPTH) * mm;
+  scintBox = new G4Box("scint-box", x/2, y/2, z/2);
 
   scintLogVol = new G4LogicalVolume(scintBox, scintMat, "scint-log");
   va.SetColor(0.35, 0.5, 0.92, 0.8);
@@ -188,51 +205,61 @@ void DetectorConstruction::makeScintillator()
 
 void DetectorConstruction::makeReflector()
 {
-  // TODO: add
-}
+  using GC = GlobalConfigs;
+  const auto& gc = GC::instance();
+  if (!gc.configOption<bool>(GC::kBUILD_SCINTILLATOR_CLADDING))
+    return;
 
-void DetectorConstruction::makeTeflon()
-{
+  const auto airGap = gc.configOption<double>(
+      GC::kSCINTILLATOR_CLADDING_AIR_GAP_THICKNESS) * micrometer;
+  
+  const double halfThick = REFLECTOR_THICK / 2;
+  const auto extra = airGap + halfThick;
+  const G4double hx = scintBox->GetXHalfLength() + extra,
+                 hy = scintBox->GetYHalfLength() + extra,
+                 hz = scintBox->GetZHalfLength() + extra;
+  auto* preCut = new G4Box("", hx, hy, hz);
+
+  auto* sliceOut = new G4Box(
+      "", hx - halfThick, hy - halfThick, hz - halfThick);
+  G4ThreeVector translate(0, 0, 0);
+  auto* slicedWithCap = new G4SubtractionSolid(
+      "", 
+      preCut, sliceOut, nullptr, translate);
+  // pad the slice so we don't have like a 1-atom thick remainder
+  const G4double slicePad = 20*mm;
+  auto* chopCap = new G4Box(
+      "", hx + slicePad, hy + slicePad, extra);
+  translate = G4ThreeVector(0, 0, hz);
+  auto* sliced = new G4SubtractionSolid(
+      "sliced-reflector",
+      slicedWithCap, chopCap, nullptr, translate);
+
+  std::string choice = gc.configOption<std::string>(GC::kSCINTILLATOR_CLADDING_TYPE);
+  G4Material* refMat = Materials::selectReflectorMaterial(choice);
+  auto* reflectorLogVol = new G4LogicalVolume(sliced, refMat, "reflector-log");
   G4VisAttributes va;
-
-  const G4double precutHalfThick = (AIR_GAP + TEF_THICK + CRYST_SIZE)/2;
-
-  auto* ptfe = G4NistManager::Instance()->FindOrBuildMaterial(Materials::kNIST_TEFLON);
-  auto* preCutPtfeBox = new G4Box(
-    "precut_ptfe", precutHalfThick, precutHalfThick, precutHalfThick);
-
-  auto addAirGapHalfXyz = 0.5 * (CRYST_SIZE + AIR_GAP);
-  auto* crystPlusAirGap = new G4Box(
-    "", addAirGapHalfXyz, addAirGapHalfXyz, addAirGapHalfXyz);
-  G4ThreeVector translateSubtract(0, 0, 0);
-  auto* slicedPtfe = new G4SubtractionSolid(
-    "sliced_ptfe", preCutPtfeBox, crystPlusAirGap, nullptr, translateSubtract);
-
-  translateSubtract = G4ThreeVector(0, 0, 1.8 * cm);
-  auto* cutCap = new G4Box("", precutHalfThick + 5*mm, precutHalfThick + 5*mm, precutHalfThick);
-  auto* slicedPtfeOpen = new G4SubtractionSolid(
-    "sliced_ptfe_open", slicedPtfe, cutCap, nullptr, translateSubtract);
-
-  auto* ptfeLogVol = new G4LogicalVolume(
-    slicedPtfeOpen, ptfe, "ptfe_log");
   va.SetColor(0, 1, 0, 0.1);
   va.SetVisibility(true);
-  ptfeLogVol->SetVisAttributes(va);
-  attachLambertianOpticalSurface(ptfeLogVol);
-
+  reflectorLogVol->SetVisAttributes(va);
+  auto f = selectSurfaceAttachmentFunction(choice);
+  f(reflectorLogVol);
+   
   (void) new G4PVPlacement(
-    nullptr, G4ThreeVector(), ptfeLogVol,
-    "ptfe_phys", worldLogVol, false, 0, checkOverlaps);
+    nullptr, G4ThreeVector(), reflectorLogVol,
+    "reflector-phys", worldLogVol, false, 0, checkOverlaps);
 }
-
-void DetectorConstruction::makeEsr()
-{
-  // TODO: add
-}
-
 
 void DetectorConstruction::attachScintillatorSensitiveDetector()
 {
+  if (scintLogVol == nullptr) {
+    G4Exception(
+      "DetectorConstruction",
+      "",
+      JustWarning,
+      "Scintillator logical volume is null");
+    return;
+  }
   auto* sd = new CrystalSensitiveDetector("crystal-sens-det");
   scintSensDet.Put(sd);
 
@@ -242,6 +269,14 @@ void DetectorConstruction::attachScintillatorSensitiveDetector()
 
 void DetectorConstruction::attachOpticalSensitiveDetector()
 {
+  if (opticalDetectorLogVol == nullptr) {
+    G4Exception(
+      "DetectorConstruction",
+      "",
+      JustWarning,
+      "Optical detector logical volume is null");
+    return;
+  }
   auto* sd = new SiSensitiveDetector("optical-sens-det");
   opticalSensDet.Put(sd);
 
@@ -263,7 +298,7 @@ void DetectorConstruction::finishScintillatorSides()
 
 void DetectorConstruction::makeLightguide()
 {
-  // TODO: add
+  // TODO: implement
 }
 
 static G4OpticalSurface* opticalDetectorSurface()

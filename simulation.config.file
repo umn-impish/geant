@@ -4,26 +4,32 @@ save-prefix grips-test
 save-each-cryst-hit-energy 0
 save-scintillator-positions 0
 
-# now we can add comments. hooray
 scintillator-material cebr3
+# nanosecond
 scintillator-time-const 50
-scintillator-length 5
-scintillator-width 40
-scintillator-depth 40
 scintillator-back-finish rough
 scintillator-small-areas-finish polished
 scintillator-large-areas-finsh polished
-scintillator-cladding-type teflon
+
+# allowed types: (teflon, esr)
+scintillator-cladding-type esr
 build-scintillator-cladding 1
 
 sipms-per-row 8
 num-sipm-rows 1
-sipm-spacing 1
 save-sipm-positions 0
 save-sipm-energies 0
-sipm-air-gap-thickness 0
 
-scintillator-cladding-air-gap-thickness
-light-guide-thickness 2
 light-guide-cladding-type teflon
 build-light-guide-cladding 1
+
+# these are all in units of millimeter
+light-guide-thickness 2
+sipm-spacing 1
+scintillator-length 5
+scintillator-width 40
+scintillator-depth 40
+
+# these are all in units of micron
+scintillator-cladding-air-gap-thickness 100
+sipm-air-gap-thickness 0
