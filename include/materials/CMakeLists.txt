@@ -11,4 +11,5 @@ target_sources(${EXC_OUT}
         LYSOProperties.hh
         GaGGProperties.hh
         ESRProperties.hh
+        PDMSProperties.hh
 )

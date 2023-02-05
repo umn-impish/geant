@@ -66,6 +66,7 @@ class GlobalConfigs
             kNUM_SIPM_ROWS,
             kSIPMS_PER_ROW,
             kSIPM_SPACING,
+            kSIPM_SIDE_LENGTH,
             kSAVE_SIPM_POSITIONS,
             kSAVE_SIPM_ENERGIES,
             kSIPM_AIR_GAP_THICKNESS,

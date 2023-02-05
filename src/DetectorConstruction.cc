@@ -25,8 +25,6 @@
 
 #include <materials/Materials.hh>
 
-#define SURFACE_LOOKER_UPPER(srf) {#srf, srf}
-
 namespace ImpressForGrips
 {
 static G4OpticalSurface* opticalDetectorSurface();
@@ -65,7 +63,7 @@ namespace {
 
       // TODO: maybe make this customizable?
       // this is equivalent to the Lambertian scattering probability in this situation
-      const double DEFECT_PROB = 0.01;
+      const double DEFECT_PROB = 0.05;
       const std::unordered_map<
         const char*,
         const std::vector<G4double>
@@ -110,7 +108,7 @@ DetectorConstruction::DetectorConstruction() :
   scintBox(nullptr),
   scintPlacement(nullptr),
   scintLogVol(nullptr),
-  opticalDetectorLogVol(nullptr),
+  opticalDetectorLogVols(),
   scintSensDet(),
   opticalSensDet()
 {
@@ -159,11 +157,6 @@ void DetectorConstruction::makeWorld()
     new G4PVPlacement(
       nullptr, G4ThreeVector(), worldLogVol,
       "world-placement", nullptr, false, 0, checkOverlaps);
-}
-
-void DetectorConstruction::makeOpticalDetector()
-{
-  // TODO: implement
 }
 
 void DetectorConstruction::makeScintillator()
@@ -258,19 +251,20 @@ void DetectorConstruction::attachScintillatorSensitiveDetector()
 
 void DetectorConstruction::attachOpticalSensitiveDetector()
 {
-  if (opticalDetectorLogVol == nullptr) {
+  if (opticalDetectorLogVols.size() == 0) {
     G4Exception(
       "DetectorConstruction",
       "",
       JustWarning,
-      "Optical detector logical volume is null");
+      "Optical detector logical volumes are empty");
     return;
   }
   auto* sd = new SiSensitiveDetector("optical-sens-det");
   opticalSensDet.Put(sd);
 
   G4SDManager::GetSDMpointer()->AddNewDetector(sd);
-  opticalDetectorLogVol->SetSensitiveDetector(sd);
+  for (auto* lv : opticalDetectorLogVols)
+    lv->SetSensitiveDetector(sd);
 }
 
 void DetectorConstruction::finishScintillatorSides()
@@ -306,6 +300,8 @@ void DetectorConstruction::finishScintillatorSides()
   };
 
   const std::unordered_map<std::string, G4OpticalSurfaceFinish>
+
+  #define SURFACE_LOOKER_UPPER(srf) {#srf, srf}
   surfaceLookup = {
     SURFACE_LOOKER_UPPER(Polished_LUT),
     SURFACE_LOOKER_UPPER(Rough_LUT),
@@ -320,7 +316,7 @@ void DetectorConstruction::finishScintillatorSides()
   auto* vac = G4Material::GetMaterial(Materials::kVACUUM);
   G4VisAttributes va;
   va.SetColor(1, 0, 0, 0.8);
-  va.SetVisibility(true);
+  va.SetVisibility(false);
 
   std::size_t finishNum = 0;
   for (const auto& [finishKey, dataPair] : applyTheseFinishes) {
@@ -351,29 +347,92 @@ void DetectorConstruction::finishScintillatorSides()
     surf->SetType(dielectric_LUTDAVIS);
     // NB: do both orders because it matters
     // actually--just do exit. what...
-    // (void) new G4LogicalBorderSurface(partialName + "-border-surf-out-in", pv, scintPlacement, surf);
+    (void) new G4LogicalBorderSurface(partialName + "-border-surf-out-in", pv, scintPlacement, surf);
     (void) new G4LogicalBorderSurface(partialName + "-border-surf-in-out", scintPlacement, pv, surf);
   }
 }
 
 void DetectorConstruction::makeLightguide()
 {
-  // TODO: implement
+  using GC = GlobalConfigs;
+  const auto& gc = GC::instance();
+
+  auto thick = gc.configOption<double>(GC::kLIGHT_GUIDE_THICKNESS);
+  auto hy = scintBox->GetYHalfLength(), hx = scintBox->GetZHalfLength();
+  lgBox = new G4Box("light-guide-box", hx, hy, thick/2);
+
+  auto* pdms = G4Material::GetMaterial(Materials::kPDMS);
+  auto* lgLv = new G4LogicalVolume(lgBox, pdms, "light-guide-lv");
+
+  G4ThreeVector translate(0, 0, scintBox->GetZHalfLength() + thick/2);
+  G4VisAttributes va;
+  va.SetColor(1, 1, 0, 0.5);
+  va.SetVisibility(true);
+  lgLv->SetVisAttributes(va);
+  (void) new G4PVPlacement(
+      nullptr, translate, lgLv, "light-guide-place",
+      worldLogVol, false, 0, checkOverlaps
+  );
+}
+
+void DetectorConstruction::makeOpticalDetector()
+{
+  using GC = GlobalConfigs;
+  const auto& gc = GC::instance();
+  
+  auto numRows = gc.configOption<int>(GC::kNUM_SIPM_ROWS);
+  auto numPerRow = gc.configOption<int>(GC::kSIPMS_PER_ROW);
+  auto side = gc.configOption<double>(GC::kSIPM_SIDE_LENGTH) * mm;
+  auto gap = gc.configOption<double>(GC::kSIPM_SPACING) * mm;
+
+  double SIPM_THICK = 1 * mm;
+
+  double zCenter = scintBox->GetZHalfLength() + lgBox->GetZHalfLength()*2 + SIPM_THICK/2;
+  double delta = side + gap;
+  double xOrigin = -(numPerRow - 1) * delta / 2;
+  double yOrigin = -(numRows - 1) * delta / 2;
+
+  auto* si = G4Material::GetMaterial(Materials::kNIST_SI);
+  G4OpticalSurface* surf = opticalDetectorSurface();
+  G4VisAttributes va{G4Color(0, 0, 1, 0.3)};
+  for (int i = 0; i < numRows; ++i) {
+    for (int j = 0; j < numPerRow; ++j) {
+      G4ThreeVector center(xOrigin + j*delta, yOrigin + i*delta, zCenter);
+
+      std::string baseName = "sipm" + std::to_string(i) + std::to_string(j);
+      auto* box = new G4Box(
+        baseName + "-box",
+        side/2, side/2, SIPM_THICK/2);
+      auto* lv = new G4LogicalVolume(
+        box, si,
+        baseName + "-lv");
+      lv->SetVisAttributes(va);
+      (void) new G4PVPlacement(
+        nullptr, center, lv, baseName + "-place",
+        worldLogVol, false, 0, checkOverlaps
+      );
+
+      // for later. . .
+      opticalDetectorLogVols.push_back(lv);
+      (void) new G4LogicalSkinSurface(
+        baseName + "-skin", lv, surf);
+    }
+  }
 }
 
 static G4OpticalSurface* opticalDetectorSurface()
 {
-    static G4ThreadLocal G4OpticalSurface* ss = nullptr;
-    if (ss) return ss;
-    ss = new G4OpticalSurface("optical-det-surf");
-    ss->SetMaterialPropertiesTable(
-        G4NistManager::Instance()
-        ->FindOrBuildMaterial(Materials::kNIST_SI)
-        ->GetMaterialPropertiesTable());
-    ss->SetModel(unified);
-    ss->SetFinish(polished);
-    ss->SetType(dielectric_dielectric);
-    return ss;
+  static G4ThreadLocal G4OpticalSurface* ss = nullptr;
+  if (ss) return ss;
+  ss = new G4OpticalSurface("optical-det-surf");
+  ss->SetMaterialPropertiesTable(
+    G4NistManager::Instance()
+    ->FindOrBuildMaterial(Materials::kNIST_SI)
+    ->GetMaterialPropertiesTable());
+  ss->SetModel(unified);
+  ss->SetFinish(polished);
+  ss->SetType(dielectric_dielectric);
+  return ss;
 }
 
 void verifyReflectorStatus()
@@ -399,7 +458,7 @@ void verifyReflectorStatus()
     );
     if (uhOh) {
       throw std::runtime_error(
-        "Do not use a Teflon or ESR finish on the scintillator "
+        "Do not use a Teflon or ESR LUT finish on the scintillator "
         "when you are also building the scintillator cladding.");
     }
   }

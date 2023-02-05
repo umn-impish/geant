@@ -37,6 +37,7 @@ ASSIGN_KEY(kBUILD_SCINTILLATOR_CLADDING,             "build-scintillator-claddin
 ASSIGN_KEY(kNUM_SIPM_ROWS,                           "num-sipm-rows")
 ASSIGN_KEY(kSIPMS_PER_ROW,                           "sipms-per-row")
 ASSIGN_KEY(kSIPM_SPACING,                            "sipm-spacing")
+ASSIGN_KEY(kSIPM_SIDE_LENGTH,                        "sipm-side-length")
 ASSIGN_KEY(kSAVE_SIPM_POSITIONS,                     "save-sipm-positions")
 ASSIGN_KEY(kSAVE_SIPM_ENERGIES,                      "save-sipm-energies")
 ASSIGN_KEY(kSIPM_AIR_GAP_THICKNESS,                  "sipm-air-gap-thickness")
@@ -68,6 +69,7 @@ const std::unordered_map<std::string, pt> GlobalConfigs::KEY_TYPE_PARSE = {
     {kSIPMS_PER_ROW,                           pt::vINT},
     {kNUM_SIPM_ROWS,                           pt::vINT},
     {kSIPM_SPACING,                            pt::vDOUBLE},
+    {kSIPM_SIDE_LENGTH,                        pt::vDOUBLE},
     {kSAVE_SIPM_POSITIONS,                     pt::vBOOL},
     {kSAVE_SIPM_ENERGIES,                      pt::vBOOL},
     {kSIPM_AIR_GAP_THICKNESS,                  pt::vDOUBLE},

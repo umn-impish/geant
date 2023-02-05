@@ -22,6 +22,7 @@
 #include "LYSOProperties.hh"
 #include "GaGGProperties.hh"
 #include "ESRProperties.hh"
+#include "PDMSProperties.hh"
 
 /*
  * Empirical data sources

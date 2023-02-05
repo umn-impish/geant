@@ -16,6 +16,7 @@ namespace Materials {
     void makeHousingAluminumAlloy();
     void makeSilicon();
     void makeEsr();
+    void makePdms();
 }
 
 namespace {
@@ -48,6 +49,8 @@ void makeMaterials()
         makeBeryllium();
     if (!G4Material::GetMaterial(kESR))
         makeEsr();
+    if (!G4Material::GetMaterial(kPDMS))
+        makePdms();
 }
 
 std::string selectScintillator(const std::string& choice)
@@ -276,6 +279,36 @@ void makeEsr()
     esr->AddMaterial(nm->FindOrBuildMaterial("G4_C"), 0.65);
     esr->AddMaterial(nm->FindOrBuildMaterial("G4_H"), 0.11);
     esr->AddMaterial(nm->FindOrBuildMaterial("G4_O"), 0.22);
+}
+
+void makePdms()
+{
+    auto* nm = G4NistManager::Instance();
+    auto* hydrogen = nm->FindOrBuildMaterial("G4_H");
+    auto* carbon = nm->FindOrBuildMaterial("G4_C");
+    auto* oxygen = nm->FindOrBuildMaterial("G4_O");
+    auto* silicon = nm->FindOrBuildMaterial("G4_Si");
+
+    std::array<G4Material*, 4> elMats = {hydrogen, carbon, oxygen, silicon};
+    // for computing mass fraction later
+    double totalMass = 0;
+    std::array<std::uint8_t, 4> atomz = {6, 2, 1, 1};
+    for (std::size_t i = 0; i < atomz.size(); ++i) {
+        totalMass += elMats[i]->GetMassOfMolecule() * atomz[i];
+    }
+
+    auto* pdms = new G4Material(
+        kPDMS, PDMS_DENSITY, G4int(atomz.size()),
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+
+    for (std::size_t i = 0; i < atomz.size(); ++i) {
+        double massFrac = elMats[i]->GetMassOfMolecule() / totalMass;
+        pdms->AddMaterial(elMats[i], atomz[i] * massFrac);
+    }
+
+    auto* pdmsPt = new G4MaterialPropertiesTable;
+    pdmsPt->AddProperty(kREFR_IDX, PDMS_REFR_IDX_ENERGIES, PDMS_REFR_IDXS, useSpline);
+    pdms->SetMaterialPropertiesTable(pdmsPt);
 }
 
 }

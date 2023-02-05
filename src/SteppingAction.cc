@@ -111,7 +111,7 @@ void SteppingAction::trackScintillation(const G4Step* step)
 void SteppingAction::processOptical(const G4Step* step)
 {
     auto* track = step->GetTrack();
-    const double KILL_LENGTH = 100 * m;
+    const double KILL_LENGTH = 500 * m;
     if (track->GetTrackLength() > KILL_LENGTH) {
         track->SetTrackStatus(fStopAndKill);
         // G4cout << "killed track\n";

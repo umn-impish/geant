@@ -42,7 +42,8 @@ class DetectorConstruction : public G4VUserDetectorConstruction
     G4Box* scintBox;
     G4VPhysicalVolume* scintPlacement;
     G4LogicalVolume* scintLogVol;
-    G4LogicalVolume* opticalDetectorLogVol;
+    std::vector<G4LogicalVolume*> opticalDetectorLogVols;
+    G4Box* lgBox;
 
     constexpr static G4double SI_SIDE = 2 * cm;
     constexpr static G4double SI_THICK = 0.5 * mm;

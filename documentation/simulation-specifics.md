@@ -15,8 +15,10 @@ All reflectors are approximated.
 Teflon is a perfectly
 	[Lambertian](https://en.wikipedia.org/wiki/Lambertian_reflectance) reflector.
 Shiny film (a la
-	[ESR](https://www.3m.com/3M/en_US/p/d/b5005047091/)) is approximated as a perfectly
+	[ESR](https://www.3m.com/3M/en_US/p/d/b5005047091/)) is approximated as a
 	[specular](https://en.wikipedia.org/wiki/Specular_reflection) reflector.
+It has a "5% defect probability" meaning that 5% of the time an interacting optical
+	photon will undergo Lambertian reflection inistead of specular reflection.
 
 #### NB: reflector ordering and thickness
 The ordering of the volumes used to define optical border surfaces matters.
@@ -31,6 +33,4 @@ They are defined to be 1/2 the air gap depth.
 If they take up the whole air gap, weird things happen.
 
 ### Miscellaneous optical parameters
-This is enforced in the code.
-Any additional code should follow this guideline.
-
+N/A at the moment
