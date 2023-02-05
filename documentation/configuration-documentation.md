@@ -18,8 +18,19 @@ Shiny film (a la
 	[ESR](https://www.3m.com/3M/en_US/p/d/b5005047091/)) is approximated as a perfectly
 	[specular](https://en.wikipedia.org/wiki/Specular_reflection) reflector.
 
+#### NB: reflector ordering and thickness
+The ordering of the volumes used to define optical border surfaces matters.
+That is, the transition from volume 1 to volume 2 is different from the transition
+from volume 2 to volume 1.
+To take this into account,
+the transition from _crystal_ to _air gap_ is defined, but not vice versa.
+This is achieved by making "dummy" volumes of vacuum around each crystal side.
+
+Also, the thickness of these dummy volumes matters.
+They are defined to be 1/2 the air gap depth.
+If they take up the whole air gap, weird things happen.
+
 ### Miscellaneous optical parameters
-There is a minimum air-gap between all optical interfaces of 50nm.
 This is enforced in the code.
 Any additional code should follow this guideline.
 
