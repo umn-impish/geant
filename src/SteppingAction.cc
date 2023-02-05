@@ -110,6 +110,14 @@ void SteppingAction::trackScintillation(const G4Step* step)
 
 void SteppingAction::processOptical(const G4Step* step)
 {
+    auto* track = step->GetTrack();
+    const double KILL_LENGTH = 100 * m;
+    if (track->GetTrackLength() > KILL_LENGTH) {
+        track->SetTrackStatus(fStopAndKill);
+        // G4cout << "killed track\n";
+        return;
+    }
+
     static const G4ThreadLocal G4OpBoundaryProcess* boundary = findOpticalBoundary(step);
     if (boundary == nullptr) return;
 

@@ -144,7 +144,7 @@ void DetectorConstruction::makeWorld()
   G4VisAttributes va;
 
   G4Material* vac = G4Material::GetMaterial(Materials::kVACUUM);
-  const G4double worldSize = 1 * m;
+  const G4double worldSize = 10 * cm;
   G4Box* worldBox =    
     new G4Box(
       "world", 0.5*worldSize, 0.5*worldSize, 0.5*worldSize);
@@ -275,16 +275,20 @@ void DetectorConstruction::attachOpticalSensitiveDetector()
 
 void DetectorConstruction::finishScintillatorSides()
 {
-  const double thin = 5 * nanometer;
   auto hx = scintBox->GetXHalfLength(),
        hy = scintBox->GetYHalfLength(),
        hz = scintBox->GetZHalfLength();
+  const auto airGap = GlobalConfigs::
+    instance()
+    .configOption<double>(
+      GlobalConfigs::kSCINTILLATOR_CLADDING_AIR_GAP_THICKNESS) * micrometer;
+  const auto thickness = airGap / 2;
   auto* xyBox = new G4Box(
-    "xy-finisher", hx, hy, thin);
+    "xy-finisher", hx, hy, thickness);
   auto* yzBox = new G4Box(
-    "yz-finisher", thin, hy, hz);
+    "yz-finisher", thickness, hy, hz);
   auto* xzBox = new G4Box(
-    "xz-finisher", hx, thin, hz);
+    "xz-finisher", hx, thickness, hz);
 
   using GC = GlobalConfigs;
   const auto& gc = GC::instance();
@@ -293,12 +297,12 @@ void DetectorConstruction::finishScintillatorSides()
   const std::unordered_multimap<
     std::string, std::pair<G4Box*, tv>>
   applyTheseFinishes = {
-    {GC::kSCINTILLATOR_XZ_FACES_FINISH, {xzBox, tv(0, hy + thin, 0)}},
-    {GC::kSCINTILLATOR_XZ_FACES_FINISH, {xzBox, tv(0, -hy - thin, 0)}},
-    {GC::kSCINTILLATOR_YZ_FACES_FINISH, {yzBox, tv(hx + thin, 0, 0)}},
-    {GC::kSCINTILLATOR_YZ_FACES_FINISH, {yzBox, tv(-hx - thin, 0, 0)}},
-    {GC::kSCINTILLATOR_MINUS_Z_FACE_FINISH, {xyBox, tv(0, 0, -hz - thin)}},
-    {"Polished_LUT", {xyBox, tv(0, 0, hz + thin)}},
+    {GC::kSCINTILLATOR_XZ_FACES_FINISH, {xzBox, tv(0, hy + thickness, 0)}},
+    {GC::kSCINTILLATOR_XZ_FACES_FINISH, {xzBox, tv(0, -hy - thickness, 0)}},
+    {GC::kSCINTILLATOR_YZ_FACES_FINISH, {yzBox, tv(hx + thickness, 0, 0)}},
+    {GC::kSCINTILLATOR_YZ_FACES_FINISH, {yzBox, tv(-hx - thickness, 0, 0)}},
+    {GC::kSCINTILLATOR_MINUS_Z_FACE_FINISH, {xyBox, tv(0, 0, -hz - thickness)}},
+    // {"Polished_LUT", {xyBox, tv(0, 0, hz + thickness)}},
   };
 
   const std::unordered_map<std::string, G4OpticalSurfaceFinish>
@@ -315,8 +319,10 @@ void DetectorConstruction::finishScintillatorSides()
 
   auto* vac = G4Material::GetMaterial(Materials::kVACUUM);
   G4VisAttributes va;
-  va.SetColor(1, 1, 1, 0.5);
-  va.SetVisibility(false);
+  va.SetColor(1, 0, 0, 0.8);
+  va.SetVisibility(true);
+
+  std::size_t finishNum = 0;
   for (const auto& [finishKey, dataPair] : applyTheseFinishes) {
     std::string finishStr;
     try { finishStr = gc.configOption<std::string>(finishKey); }
@@ -330,17 +336,23 @@ void DetectorConstruction::finishScintillatorSides()
     }
     
     auto [box, translate] = dataPair;
-    auto* lv = new G4LogicalVolume(box, vac, "");
+    auto partialName = box->GetName() + '-' + std::to_string(finishNum++);
+
+    auto* lv = new G4LogicalVolume(box, vac, partialName + "-lv");
     lv->SetVisAttributes(va);
+
     auto* pv = new G4PVPlacement(
         nullptr, translate, lv,
-        box->GetName() + "-pv", worldLogVol, false, 0, checkOverlaps);
-    auto* surf = new G4OpticalSurface("");
-    surf->SetModel(DAVIS);
+        partialName + "-pv", worldLogVol, false, 0, checkOverlaps);
 
+    auto* surf = new G4OpticalSurface(partialName + "-optical-surf");
+    surf->SetModel(DAVIS);
     surf->SetFinish(finish);
     surf->SetType(dielectric_LUTDAVIS);
-    (void) new G4LogicalBorderSurface("", pv, scintPlacement, surf);
+    // NB: do both orders because it matters
+    // actually--just do exit. what...
+    // (void) new G4LogicalBorderSurface(partialName + "-border-surf-out-in", pv, scintPlacement, surf);
+    (void) new G4LogicalBorderSurface(partialName + "-border-surf-in-out", scintPlacement, pv, surf);
   }
 }
 
@@ -369,9 +381,9 @@ void verifyReflectorStatus()
   using GC = GlobalConfigs;
   const auto& gc = GC::instance();
 
-  auto useTeflon = gc.configOption<bool>(
+  auto useReflector = gc.configOption<bool>(
       GC::kBUILD_SCINTILLATOR_CLADDING);
-  if (!useTeflon) return;
+  if (!useReflector) return;
 
   const std::vector<std::string> facesToCheck = {
     GC::kSCINTILLATOR_XZ_FACES_FINISH,
