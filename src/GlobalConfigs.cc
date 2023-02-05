@@ -24,12 +24,12 @@ ASSIGN_KEY(kSAVE_SCINTILLATOR_POSITIONS,             "save-scintillator-position
 
 ASSIGN_KEY(kSCINTILLATOR_MATERIAL,                   "scintillator-material")
 ASSIGN_KEY(kSCINTILLATOR_TIME_CONST,                 "scintillator-time-const")
-ASSIGN_KEY(kSCINTILLATOR_LENGTH,                     "scintillator-length")
-ASSIGN_KEY(kSCINTILLATOR_WIDTH,                      "scintillator-width")
-ASSIGN_KEY(kSCINTILLATOR_DEPTH,                      "scintillator-depth")
-ASSIGN_KEY(kSCINTILLATOR_BACK_FINISH,                "scintillator-back-finish")
-ASSIGN_KEY(kSCINTILLATOR_SMALL_AREAS_FINISH,         "scintillator-small-areas-finish")
-ASSIGN_KEY(kSCINTILLATOR_LARGE_AREAS_FINSH,          "scintillator-large-areas-finsh")
+ASSIGN_KEY(kSCINTILLATOR_DX,                         "scintillator-dx")
+ASSIGN_KEY(kSCINTILLATOR_DY,                         "scintillator-dy")
+ASSIGN_KEY(kSCINTILLATOR_DZ,                         "scintillator-dz")
+ASSIGN_KEY(kSCINTILLATOR_MINUS_Z_FACE_FINISH,        "scintillator-minus-z-face-finish")
+ASSIGN_KEY(kSCINTILLATOR_XZ_FACES_FINISH,            "scintillator-xz-faces-finish")
+ASSIGN_KEY(kSCINTILLATOR_YZ_FACES_FINISH,            "scintillator-yz-faces-finish")
 ASSIGN_KEY(kSCINTILLATOR_CLADDING_TYPE,              "scintillator-cladding-type")
 ASSIGN_KEY(kSCINTILLATOR_CLADDING_AIR_GAP_THICKNESS, "scintillator-cladding-air-gap-thickness")
 ASSIGN_KEY(kBUILD_SCINTILLATOR_CLADDING,             "build-scintillator-cladding")
@@ -55,12 +55,12 @@ const std::unordered_map<std::string, pt> GlobalConfigs::KEY_TYPE_PARSE = {
 
     {kSCINTILLATOR_MATERIAL,                   pt::vSTRING},
     {kSCINTILLATOR_TIME_CONST,                 pt::vDOUBLE},
-    {kSCINTILLATOR_LENGTH,                     pt::vDOUBLE},
-    {kSCINTILLATOR_WIDTH,                      pt::vDOUBLE},
-    {kSCINTILLATOR_DEPTH,                      pt::vDOUBLE},
-    {kSCINTILLATOR_BACK_FINISH,                pt::vSTRING},
-    {kSCINTILLATOR_SMALL_AREAS_FINISH,         pt::vSTRING},
-    {kSCINTILLATOR_LARGE_AREAS_FINSH,          pt::vSTRING},
+    {kSCINTILLATOR_DX,                         pt::vDOUBLE},
+    {kSCINTILLATOR_DY,                         pt::vDOUBLE},
+    {kSCINTILLATOR_DZ,                         pt::vDOUBLE},
+    {kSCINTILLATOR_MINUS_Z_FACE_FINISH,        pt::vSTRING},
+    {kSCINTILLATOR_XZ_FACES_FINISH,            pt::vSTRING},
+    {kSCINTILLATOR_YZ_FACES_FINISH,            pt::vSTRING},
     {kSCINTILLATOR_CLADDING_TYPE,              pt::vSTRING},
     {kSCINTILLATOR_CLADDING_AIR_GAP_THICKNESS, pt::vDOUBLE},
     {kBUILD_SCINTILLATOR_CLADDING,             pt::vBOOL},
@@ -103,7 +103,8 @@ void GlobalConfigs::loadConfig()
     while (std::getline(ifs, line)) {
         try {
             static const char COMMENT_MARKER = '#';
-            if (line[0] == COMMENT_MARKER) continue;
+            if (line.size() == 0 || line[0] == COMMENT_MARKER)
+                continue;
 
             std::stringstream ss(line);
             ss >> key;

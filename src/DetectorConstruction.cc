@@ -25,6 +25,8 @@
 
 #include <materials/Materials.hh>
 
+#define SURFACE_LOOKER_UPPER(srf) {#srf, srf}
+
 namespace ImpressForGrips
 {
 static G4OpticalSurface* opticalDetectorSurface();
@@ -62,6 +64,7 @@ namespace {
       auto* pt = new G4MaterialPropertiesTable();
 
       // TODO: maybe make this customizable?
+      // this is equivalent to the Lambertian scattering probability in this situation
       const double DEFECT_PROB = 0.01;
       const std::unordered_map<
         const char*,
@@ -96,22 +99,7 @@ namespace {
         {"teflon", attachLambertianOpticalSurface},
         {"esr", attachSpecularOpticalSurface}
     };
-
-    AttachFunc f;
-    try {
-      f = ATTACH_SURFACE_OPTIONS.at(choice);
-    }
-    catch (std::out_of_range& e) {
-      std::stringstream ss;
-      ss << choice << " is not a valid reflector." << std::endl
-         << "valid are:" << std::endl;
-      for (const auto& [k, _] : ATTACH_SURFACE_OPTIONS) {
-        ss << "  - " << k << std::endl;
-      }
-      throw std::runtime_error(ss.str());
-    }
-
-    return f;
+    return ATTACH_SURFACE_OPTIONS.at(choice);
   }
 }
 
@@ -127,6 +115,7 @@ DetectorConstruction::DetectorConstruction() :
   opticalSensDet()
 {
   Materials::makeMaterials();
+  verifyReflectorStatus();
 }
 
 DetectorConstruction::~DetectorConstruction()
@@ -155,7 +144,7 @@ void DetectorConstruction::makeWorld()
   G4VisAttributes va;
 
   G4Material* vac = G4Material::GetMaterial(Materials::kVACUUM);
-  const G4double worldSize = 10*cm;
+  const G4double worldSize = 1 * m;
   G4Box* worldBox =    
     new G4Box(
       "world", 0.5*worldSize, 0.5*worldSize, 0.5*worldSize);
@@ -188,10 +177,10 @@ void DetectorConstruction::makeScintillator()
   G4cout << "selected material is " << converted << G4endl;
   auto* scintMat = G4Material::GetMaterial(converted);
 
-  const auto x = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_WIDTH) * mm;
-  const auto y = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_LENGTH) * mm;
-  const auto z = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_DEPTH) * mm;
-  scintBox = new G4Box("scint-box", x/2, y/2, z/2);
+  const auto dx = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_DX) * mm;
+  const auto dy = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_DY) * mm;
+  const auto dz = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_DZ) * mm;
+  scintBox = new G4Box("scint-box", dx/2, dy/2, dz/2);
 
   scintLogVol = new G4LogicalVolume(scintBox, scintMat, "scint-log");
   va.SetColor(0.35, 0.5, 0.92, 0.8);
@@ -286,14 +275,73 @@ void DetectorConstruction::attachOpticalSensitiveDetector()
 
 void DetectorConstruction::finishScintillatorSides()
 {
-  auto* surf = new G4OpticalSurface("");
-  // See G4 documentation on UNIFIED model
-  surf->SetType(dielectric_LUTDAVIS);
-  surf->SetModel(DAVIS);
-  surf->SetFinish(Rough_LUT);
-  (void) new G4LogicalBorderSurface(
-    "scint-logical-border-surf", 
-    scintPlacement, worldPlacement, surf);
+  const double thin = 5 * nanometer;
+  auto hx = scintBox->GetXHalfLength(),
+       hy = scintBox->GetYHalfLength(),
+       hz = scintBox->GetZHalfLength();
+  auto* xyBox = new G4Box(
+    "xy-finisher", hx, hy, thin);
+  auto* yzBox = new G4Box(
+    "yz-finisher", thin, hy, hz);
+  auto* xzBox = new G4Box(
+    "xz-finisher", hx, thin, hz);
+
+  using GC = GlobalConfigs;
+  const auto& gc = GC::instance();
+  
+  using tv = G4ThreeVector;
+  const std::unordered_multimap<
+    std::string, std::pair<G4Box*, tv>>
+  applyTheseFinishes = {
+    {GC::kSCINTILLATOR_XZ_FACES_FINISH, {xzBox, tv(0, hy + thin, 0)}},
+    {GC::kSCINTILLATOR_XZ_FACES_FINISH, {xzBox, tv(0, -hy - thin, 0)}},
+    {GC::kSCINTILLATOR_YZ_FACES_FINISH, {yzBox, tv(hx + thin, 0, 0)}},
+    {GC::kSCINTILLATOR_YZ_FACES_FINISH, {yzBox, tv(-hx - thin, 0, 0)}},
+    {GC::kSCINTILLATOR_MINUS_Z_FACE_FINISH, {xyBox, tv(0, 0, -hz - thin)}},
+    {"Polished_LUT", {xyBox, tv(0, 0, hz + thin)}},
+  };
+
+  const std::unordered_map<std::string, G4OpticalSurfaceFinish>
+  surfaceLookup = {
+    SURFACE_LOOKER_UPPER(Polished_LUT),
+    SURFACE_LOOKER_UPPER(Rough_LUT),
+    SURFACE_LOOKER_UPPER(PolishedTeflon_LUT),
+    SURFACE_LOOKER_UPPER(RoughTeflon_LUT),
+    SURFACE_LOOKER_UPPER(PolishedESR_LUT),
+    SURFACE_LOOKER_UPPER(RoughESR_LUT),
+    SURFACE_LOOKER_UPPER(PolishedESRGrease_LUT),
+    SURFACE_LOOKER_UPPER(RoughESRGrease_LUT),
+  };
+
+  auto* vac = G4Material::GetMaterial(Materials::kVACUUM);
+  G4VisAttributes va;
+  va.SetColor(1, 1, 1, 0.5);
+  va.SetVisibility(false);
+  for (const auto& [finishKey, dataPair] : applyTheseFinishes) {
+    std::string finishStr;
+    try { finishStr = gc.configOption<std::string>(finishKey); }
+    catch (const std::out_of_range& e) { finishStr = finishKey; }
+
+    G4OpticalSurfaceFinish finish;
+    try { finish = surfaceLookup.at(finishStr); }
+    catch (const std::out_of_range& e) {
+      G4cerr << finishStr << " is not a valid finish type." << G4endl;
+      throw;
+    }
+    
+    auto [box, translate] = dataPair;
+    auto* lv = new G4LogicalVolume(box, vac, "");
+    lv->SetVisAttributes(va);
+    auto* pv = new G4PVPlacement(
+        nullptr, translate, lv,
+        box->GetName() + "-pv", worldLogVol, false, 0, checkOverlaps);
+    auto* surf = new G4OpticalSurface("");
+    surf->SetModel(DAVIS);
+
+    surf->SetFinish(finish);
+    surf->SetType(dielectric_LUTDAVIS);
+    (void) new G4LogicalBorderSurface("", pv, scintPlacement, surf);
+  }
 }
 
 void DetectorConstruction::makeLightguide()
@@ -314,6 +362,35 @@ static G4OpticalSurface* opticalDetectorSurface()
     ss->SetFinish(polished);
     ss->SetType(dielectric_dielectric);
     return ss;
+}
+
+void verifyReflectorStatus()
+{
+  using GC = GlobalConfigs;
+  const auto& gc = GC::instance();
+
+  auto useTeflon = gc.configOption<bool>(
+      GC::kBUILD_SCINTILLATOR_CLADDING);
+  if (!useTeflon) return;
+
+  const std::vector<std::string> facesToCheck = {
+    GC::kSCINTILLATOR_XZ_FACES_FINISH,
+    GC::kSCINTILLATOR_YZ_FACES_FINISH,
+    GC::kSCINTILLATOR_MINUS_Z_FACE_FINISH
+  };
+
+  for (const std::string& face : facesToCheck) {
+    auto finish = gc.configOption<std::string>(face);
+    bool uhOh = (
+      finish.find("Teflon") != std::string::npos || 
+      finish.find("ESR") != std::string::npos
+    );
+    if (uhOh) {
+      throw std::runtime_error(
+        "Do not use a Teflon or ESR finish on the scintillator "
+        "when you are also building the scintillator cladding.");
+    }
+  }
 }
 
 }

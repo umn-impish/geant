@@ -14,6 +14,8 @@ namespace ImpressForGrips
 class CrystalSensitiveDetector;
 class SiSensitiveDetector;
 
+void verifyReflectorStatus();
+
 class DetectorConstruction : public G4VUserDetectorConstruction
 {
   public:
