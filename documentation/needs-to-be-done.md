@@ -24,5 +24,9 @@
 	- [ ] Slightly bigger than crystal/light guide?
 	- [ ] Slightly smaller but multiple covering the crystal?
 	- [ ] How close can we pack the SiPMs in reality?
+- [ ] Related question: how much SiPM over-coverage do we need?
+	- [ ] Is 1mm over-coverage good enough?
+	- [ ] How does e.g. 1mm over-coverage compare with others?
 - [ ] What kind of scintillator is best?
 	- [ ] Things to consider: SiPM efficiency, time constant, light yield (~ energy resolution)
+- [ ] How is our signal affected if SiPMs only cover part of the detector surface?

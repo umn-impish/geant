@@ -71,9 +71,7 @@ class GlobalConfigs
             kSAVE_SIPM_ENERGIES,
             kSIPM_AIR_GAP_THICKNESS,
 
-            kLIGHT_GUIDE_THICKNESS,
-            kLIGHT_GUIDE_CLADDING_TYPE,
-            kBUILD_LIGHT_GUIDE_CLADDING;
+            kLIGHT_GUIDE_THICKNESS;
 
         enum class ParseType {vBOOL, vDOUBLE, vINT, vSTRING};
         static const std::unordered_map<std::string, ParseType> KEY_TYPE_PARSE;

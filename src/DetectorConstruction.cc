@@ -167,7 +167,6 @@ void DetectorConstruction::makeScintillator()
       GlobalConfigs::kSCINTILLATOR_MATERIAL);
 
   const auto converted = Materials::selectScintillator(choice);
-  G4cout << "selected material is " << converted << G4endl;
   auto* scintMat = G4Material::GetMaterial(converted);
 
   const auto dx = gc.configOption<double>(GlobalConfigs::kSCINTILLATOR_DX) * mm;
@@ -346,7 +345,6 @@ void DetectorConstruction::finishScintillatorSides()
     surf->SetFinish(finish);
     surf->SetType(dielectric_LUTDAVIS);
     // NB: do both orders because it matters
-    // actually--just do exit. what...
     (void) new G4LogicalBorderSurface(partialName + "-border-surf-out-in", pv, scintPlacement, surf);
     (void) new G4LogicalBorderSurface(partialName + "-border-surf-in-out", scintPlacement, pv, surf);
   }

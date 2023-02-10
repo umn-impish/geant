@@ -1,6 +1,8 @@
+# prefix the folders saved
+save-prefix folder-prefix-you-can-change-me-in-the-config-file
+
 attenuator-choice nothing
 optical-draw-frequency 1
-save-prefix grips-test
 save-each-cryst-hit-energy 0
 save-scintillator-positions 0
 
@@ -18,7 +20,7 @@ scintillator-yz-faces-finish Polished_LUT
 
 
 scintillator-material cebr3
-# nanosecond
+# unit = nanosecond
 scintillator-time-const 50
 
 
@@ -33,11 +35,7 @@ save-sipm-positions 0
 save-sipm-energies 0
 
 
-light-guide-cladding-type teflon
-build-light-guide-cladding 1
-
-
-# these are all in units of millimeter
+# unit = millimeter
 light-guide-thickness 1
 sipm-spacing 0.05
 sipm-side-length 6
@@ -46,6 +44,6 @@ scintillator-dy 5
 scintillator-dz 40
 
 
-# these are all in units of micron
+# unit = micron
 scintillator-cladding-air-gap-thickness 50
 sipm-air-gap-thickness 0

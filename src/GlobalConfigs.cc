@@ -43,8 +43,6 @@ ASSIGN_KEY(kSAVE_SIPM_ENERGIES,                      "save-sipm-energies")
 ASSIGN_KEY(kSIPM_AIR_GAP_THICKNESS,                  "sipm-air-gap-thickness")
 
 ASSIGN_KEY(kLIGHT_GUIDE_THICKNESS,                   "light-guide-thickness")
-ASSIGN_KEY(kLIGHT_GUIDE_CLADDING_TYPE,               "light-guide-cladding-type")
-ASSIGN_KEY(kBUILD_LIGHT_GUIDE_CLADDING,              "build-light-guide-cladding")
 
 namespace { using pt = GlobalConfigs::ParseType; }
 const std::unordered_map<std::string, pt> GlobalConfigs::KEY_TYPE_PARSE = {
@@ -74,9 +72,7 @@ const std::unordered_map<std::string, pt> GlobalConfigs::KEY_TYPE_PARSE = {
     {kSAVE_SIPM_ENERGIES,                      pt::vBOOL},
     {kSIPM_AIR_GAP_THICKNESS,                  pt::vDOUBLE},
 
-    {kLIGHT_GUIDE_THICKNESS,                   pt::vDOUBLE},
-    {kLIGHT_GUIDE_CLADDING_TYPE,               pt::vSTRING},
-    {kBUILD_LIGHT_GUIDE_CLADDING,              pt::vBOOL},
+    {kLIGHT_GUIDE_THICKNESS,                   pt::vDOUBLE}
 };
 
 const GlobalConfigs& GlobalConfigs::instance()
