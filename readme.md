@@ -26,7 +26,7 @@ the aluminum is red and the teflon is green just for clarity.
 	save each hit energy, not just the sum for an event (saveEachHitEnergy)
 
 ## Important notes
-if you set the RINDEX for aluminum and give it a G4OpticalSkinSurface you can get weird crashes like the one in failed-aluminum.txt
+if you set the RINDEX for aluminum and give it a G4OpticalSkinSurface you can get weird crashes like the one in [`failed-aluminum.txt`](https://github.com/settwi/g4-basic-scintillation/blob/main/failed-aluminum.txt).
 
 you can test just optical photons using macros/optical_diagnose.mac and then beamOn.
 you can test scintillation using the G4GeneralParticleSource like in macros/gps_beam_center.mac and then beamOn.
