@@ -56,7 +56,7 @@ Analysis::Analysis() :
     crystOut(kCRYST_OUT, false),
     specIn(kSPEC_IN, false),
     siOut(kSIPM_OUT, false),
-    siEngOut(kSIPM_ENGS_OUT, true),
+    siEngOut(kSIPM_ENGS_OUT, false),
     scintOut(kSCINT_OUT, false),
     cfgOut(kCONFIG_OUT, false)
 {
@@ -260,17 +260,13 @@ void Analysis::saveSiHits(const std::vector<VirtualHit*>* vec)
     siOut.file() << std::endl;
 
     if (saveSiEnergies) {
-        const size_t sz = vec->size();
-        siEngOut.file().write(
-            reinterpret_cast<const char*>(&sz),
-            sizeof(size_t));
+        siEngOut.file() << vec->size() << ' ';
         for (const auto* h : *vec) {
             const auto* nice = static_cast<const SiHit*>(h);
             const double e = nice->peekDepositedEnergy() / eV;
-            siEngOut.file().write(
-                reinterpret_cast<const char*>(&e),
-                sizeof(double));
+            siEngOut.file() << e << ' ';
         }
+        siEngOut.file() << std::endl;
     }
 }
 

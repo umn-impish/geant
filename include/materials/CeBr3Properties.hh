@@ -67,7 +67,6 @@ const std::vector<G4double> CEBR3_ABS_LEN_ENERGIES = {
     2.25290e+01*eV, 2.26682e+01*eV, 2.28074e+01*eV
 };
 
-// absorption lengths are super long so just make them 1 km
-const std::vector<G4double> CEBR3_ABS_LEN(CEBR3_ABS_LEN_ENERGIES.size(), 1. * km);
+const std::vector<G4double> CEBR3_ABS_LEN(CEBR3_ABS_LEN_ENERGIES.size(), 100. * m);
 }
 }

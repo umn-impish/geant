@@ -1,11 +1,16 @@
 # prefix the folders saved
-save-prefix folder-prefix-you-can-change-me-in-the-config-file
-
+save-prefix THE-PREFIX-CHANGE-ME
 attenuator-choice nothing
 optical-draw-frequency 1
+
+scintillator-material gagg
 save-each-cryst-hit-energy 0
 save-scintillator-positions 0
+save-sipm-positions 0
+save-sipm-energies 0
 
+sipms-per-row 7
+num-sipm-rows 1
 
 # default finish types:
 #   rough bare crystal = Rough_LUT
@@ -19,7 +24,6 @@ scintillator-xz-faces-finish Polished_LUT
 scintillator-yz-faces-finish Polished_LUT
 
 
-scintillator-material cebr3
 # unit = nanosecond
 scintillator-time-const 50
 
@@ -27,12 +31,6 @@ scintillator-time-const 50
 # allowed types: (teflon, esr)
 scintillator-cladding-type teflon
 build-scintillator-cladding 1
-
-
-sipms-per-row 7
-num-sipm-rows 1
-save-sipm-positions 0
-save-sipm-energies 0
 
 
 # unit = millimeter

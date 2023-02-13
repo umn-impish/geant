@@ -7,8 +7,6 @@ namespace ImpressForGrips
 // forward declare here; don't put in header
 namespace Materials {
     void configureTeflon();
-    void makeCeBr3();
-    void configureCeBr3Scintillation();
     void makeVacuum();
     void makeAluminum();
     void configureQuartz();
@@ -17,6 +15,11 @@ namespace Materials {
     void makeSilicon();
     void makeEsr();
     void makePdms();
+
+    void makeCeBr3();
+    void configureCeBr3Scintillation();
+    void makeLyso();
+    void makeGagg();
 }
 
 namespace {
@@ -34,6 +37,10 @@ void makeMaterials()
         makeCeBr3();
         configureCeBr3Scintillation();
     }
+    if (!G4Material::GetMaterial(Lyso::NAME))
+        makeLyso();
+    if (!G4Material::GetMaterial(Gagg::NAME))
+        makeGagg();
 
     auto* nMan = G4NistManager::Instance();
     if (!nMan->FindOrBuildMaterial(kNIST_SIO2)->GetMaterialPropertiesTable())
@@ -58,8 +65,8 @@ std::string selectScintillator(const std::string& choice)
     using ch = std::unordered_map<std::string, std::string>;
     const ch SCINT_CHOICES = {
         {"cebr3", kCEBR3},
-        {"lyso", kLYSO},
-        {"gagg", kGAGG}
+        {"lyso", Lyso::NAME},
+        {"gagg", Gagg::NAME}
     };
 
     try {
@@ -67,7 +74,7 @@ std::string selectScintillator(const std::string& choice)
     }
     catch (const std::out_of_range& e) {
         std::stringstream ss;
-        ss << choice << " is not a valid scintillator type."
+        ss << choice << " is not a valid scintillator type." << std::endl
            << "valid choices are: " << std::endl;
         for (const auto& [k, _] : SCINT_CHOICES) {
             ss << "\t- " << k << std::endl;
@@ -99,6 +106,102 @@ void configureTeflon()
     tefPt->AddProperty(kREFLECTIVITY, TEFLON_REFR_IDX_ENERGIES, TEFLON_REFLECTIVITY, useSpline);
 
     teflon->SetMaterialPropertiesTable(tefPt);
+}
+
+void makeGagg()
+{
+    auto* nm = G4NistManager::Instance();
+
+    auto* scint = new G4Material(
+        Gagg::NAME,
+        Gagg::DENSITY,
+        Gagg::FRACTIONS.size(),
+        kStateSolid,
+        SATELLITE_TEMP
+    );
+
+    double totalMass = 0;
+    for (const auto& [n, v] : Gagg::FRACTIONS) {
+        auto* elt = nm->FindOrBuildElement(n);
+        totalMass += v * elt->GetAtomicMassAmu();
+    }
+
+    for (const auto& [n, v] : Gagg::FRACTIONS) {
+        auto* elt = nm->FindOrBuildElement(n);
+        double massFrac = (v * elt->GetAtomicMassAmu()) / totalMass;
+        scint->AddElement(elt, massFrac);
+    }
+
+    auto* mpt = new G4MaterialPropertiesTable;
+    auto* opp = G4OpticalParameters::Instance();
+    opp->SetScintFiniteRiseTime(false);
+    mpt->AddConstProperty(kSCINT_YIELD, Gagg::SCINT_YIELD);
+    mpt->AddProperty(
+        kREFR_IDX, Gagg::RINDEX_ENERGIES,
+        Gagg::RINDEX, useSpline);
+
+    // updated in v11
+    mpt->AddProperty(
+        kONLY_SCINT_COMPONENT, Gagg::SCINT_ENERGIES,
+        Gagg::SCINT_INTENS, useSpline);
+    mpt->AddConstProperty(kONLY_TIME_CONSTANT, Gagg::DECAY_TIME_CONSTANT);
+
+    // # of photons emitted = RESOLUTION_SCALE * sqrt(mean # of photons)
+    // take to be 1 because ... idk
+    mpt->AddConstProperty(kRESOLUTION_SCALE, 1);
+    mpt->AddProperty(kABSORPTION_LEN, Gagg::ABS_LEN_ENERGIES, Gagg::ABS_LEN, useSpline);
+    // skip optical Rayleigh scattering (not important)
+    // skip Mie scattering (doesn't apply)
+
+    scint->SetMaterialPropertiesTable(mpt);
+}
+
+void makeLyso()
+{
+    auto* nm = G4NistManager::Instance();
+
+    auto* lyso = new G4Material(
+        Lyso::NAME,
+        Lyso::DENSITY,
+        Lyso::FRACTIONS.size(),
+        kStateSolid,
+        SATELLITE_TEMP
+    );
+
+    double totalMass = 0;
+    for (const auto& [n, v] : Lyso::FRACTIONS) {
+        auto* elt = nm->FindOrBuildElement(n);
+        totalMass += v * elt->GetAtomicMassAmu();
+    }
+
+    for (const auto& [n, v] : Lyso::FRACTIONS) {
+        auto* elt = nm->FindOrBuildElement(n);
+        double massFrac = (v * elt->GetAtomicMassAmu()) / totalMass;
+        lyso->AddElement(elt, massFrac);
+    }
+
+    auto* mpt = new G4MaterialPropertiesTable;
+    auto* opp = G4OpticalParameters::Instance();
+    opp->SetScintFiniteRiseTime(false);
+    mpt->AddConstProperty(kSCINT_YIELD, Lyso::SCINT_YIELD);
+    mpt->AddProperty(
+        kREFR_IDX, Lyso::RINDEX_ENERGIES,
+        Lyso::RINDEX, useSpline);
+
+    // updated in v11
+    mpt->AddProperty(
+        kONLY_SCINT_COMPONENT, Lyso::SCINT_ENERGIES,
+        Lyso::SCINT_INTENS, useSpline);
+    mpt->AddConstProperty(kONLY_TIME_CONSTANT, Lyso::DECAY_TIME_CONSTANT);
+
+    // # of photons emitted = RESOLUTION_SCALE * sqrt(mean # of photons)
+    // take to be 1 because ... idk
+    mpt->AddConstProperty(kRESOLUTION_SCALE, 1);
+    mpt->AddProperty(kABSORPTION_LEN, Lyso::ABS_LEN_ENERGIES, Lyso::ABS_LEN, useSpline);
+    // skip optical Rayleigh scattering (not important)
+    // skip Mie scattering (doesn't apply)
+
+    lyso->SetMaterialPropertiesTable(mpt);
 }
 
 void makeCeBr3()
