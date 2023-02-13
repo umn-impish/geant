@@ -9,7 +9,7 @@
 
 namespace ImpressForGrips {
 
-const std::string GlobalConfigs::CFG_FN = "simulation.config.file";
+const std::string GlobalConfigs::DEFAULT_CFG_FN = "simulation.config.file";
 
 const std::unordered_map<std::string, G4double> GlobalConfigs::ATTENUATOR_THICKNESSES = {
     // these need to be changed!
@@ -75,7 +75,7 @@ const std::unordered_map<std::string, pt> GlobalConfigs::KEY_TYPE_PARSE = {
     {kLIGHT_GUIDE_THICKNESS,                   pt::vDOUBLE}
 };
 
-const GlobalConfigs& GlobalConfigs::instance()
+GlobalConfigs& GlobalConfigs::instance()
 {
     static GlobalConfigs igc;
     return igc;
@@ -83,18 +83,23 @@ const GlobalConfigs& GlobalConfigs::instance()
 
 GlobalConfigs::GlobalConfigs()
 {
-    loadConfig();    
+    loadConfig(DEFAULT_CFG_FN);
 }
 
 GlobalConfigs::~GlobalConfigs()
 { }
 
-void GlobalConfigs::loadConfig()
+void GlobalConfigs::reload(const std::string& newFileName)
 {
-    std::ifstream ifs(CFG_FN);
+    loadConfig(newFileName);
+}
+
+void GlobalConfigs::loadConfig(const std::string& fn)
+{
+    std::ifstream ifs(fn);
     if (!ifs) {
         throw std::runtime_error(
-            "can't load " + CFG_FN + "! make sure it's in the executible directory.");
+            "can't load " + fn + "! make sure it's in the executible directory.");
     }
 
     std::string line, key;

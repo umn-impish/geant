@@ -1,6 +1,8 @@
 # Documentation for all settings available in the config file
 **Settings are given one per line. They are lower-case strings separated by hyphens. See `simulation.config.file` for an example.**
 **You can write comments by proceeding with a hash mark. Comments must be on their own line. The name is separated from the value with whitespace. Blank lines are ok.**
+
+**Update 13 February 2023: you can input a settings file name via command line arguments. The order is this: `./executable [settings file] [macro name]`. Both arguments are optional but must occur in that order.**
 | Name | Description | Unit | Value type |
 |:----:|:-----------:|:----:|:----------:|
 | save-prefix | prefix for folders saved into data-out. | none | string

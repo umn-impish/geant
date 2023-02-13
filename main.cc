@@ -1,3 +1,4 @@
+#include <GlobalConfigs.hh>
 #include "DetectorConstruction.hh"
 #include "ActionInitialization.hh"
 #include "PhysicsList.hh"
@@ -12,17 +13,21 @@
 #include "Randomize.hh"
 #include "G4OpticalParameters.hh"
 
-int main(int argc,char** argv)
+int main(int argc, char* argv[])
 {
   G4UIExecutive* ui = nullptr;
-  if (argc == 1) {
+  if (argc == 1 || argc == 2) {
     ui = new G4UIExecutive(argc, argv);
+  }
+
+  namespace ifg = ImpressForGrips;
+  if (argc > 1) {
+    ifg::GlobalConfigs::instance().reload(argv[1]);
   }
 
   auto* runManager =
     G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default);
 
-  namespace ifg = ImpressForGrips;
   runManager->SetUserInitialization(new ifg::DetectorConstruction());
   runManager->SetUserInitialization(new ifg::PhysicsList());
   runManager->SetUserInitialization(new ifg::ActionInitialization());
@@ -31,6 +36,7 @@ int main(int argc,char** argv)
   visManager->Initialize();
 
   // need to enable scintillation
+  // you can disable it for testing
   G4OpticalParameters::Instance()->SetProcessActivation("Scintillation", true);
   // I have found Cherenkov radiation to be error-prone
   G4OpticalParameters::Instance()->SetProcessActivation("Cerenkov", false);
@@ -39,7 +45,7 @@ int main(int argc,char** argv)
   bool batchMode = (ui == nullptr);
   if (batchMode) { 
     G4String command = "/control/execute ";
-    G4String fileName = argv[1];
+    G4String fileName = argv[2];
     uiMan->ApplyCommand(command + fileName);
   }
   else { 

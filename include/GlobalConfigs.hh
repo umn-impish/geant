@@ -19,12 +19,14 @@ namespace ImpressForGrips {
 class GlobalConfigs
 {
     public:
-        static const GlobalConfigs& instance();
+        static GlobalConfigs& instance();
 
         // delete these bc we have a singleton
         GlobalConfigs(GlobalConfigs&) =delete;
         void operator=(const GlobalConfigs&) =delete;
         ~GlobalConfigs();
+
+        void reload(const std::string& newFileName);
 
         template<class T>
         T configOption(const std::string& key) const
@@ -39,7 +41,7 @@ class GlobalConfigs
             }
         }
         
-        static const std::string CFG_FN;
+        static const std::string DEFAULT_CFG_FN;
 
         // see .cc for what these are
         static const std::string
@@ -82,7 +84,7 @@ class GlobalConfigs
         static const std::unordered_map<std::string, G4double> ATTENUATOR_THICKNESSES;
     private:
         GlobalConfigs();
-        void loadConfig();
+        void loadConfig(const std::string& fn);
 
         std::unordered_map<std::string, std::any> configMap;
         friend std::ostream& operator<<(std::ostream& os, const GlobalConfigs& igf);
