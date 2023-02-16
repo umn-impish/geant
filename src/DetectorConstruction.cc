@@ -356,7 +356,7 @@ void DetectorConstruction::makeLightguide()
   const auto& gc = GC::instance();
 
   auto thick = gc.configOption<double>(GC::kLIGHT_GUIDE_THICKNESS);
-  auto hy = scintBox->GetYHalfLength(), hx = scintBox->GetZHalfLength();
+  auto hy = scintBox->GetYHalfLength(), hx = scintBox->GetXHalfLength();
   lgBox = new G4Box("light-guide-box", hx, hy, thick/2);
 
   auto* pdms = G4Material::GetMaterial(Materials::kPDMS);
