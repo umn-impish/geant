@@ -1,6 +1,5 @@
 /run/verbose 1
 /control/verbose 1
-/run/initialize
 
 /vis/open OGL 1280x720-0+0
 /vis/viewer/set/autoRefresh false

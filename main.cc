@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
   G4OpticalParameters::Instance()->SetProcessActivation("Cerenkov", false);
 
   auto* uiMan = G4UImanager::GetUIpointer();
+  uiMan->ApplyCommand("/run/initialize");
   bool batchMode = (ui == nullptr);
   if (batchMode) { 
     G4String command = "/control/execute ";
