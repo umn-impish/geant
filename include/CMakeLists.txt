@@ -2,6 +2,7 @@ target_sources(${EXC_OUT}
     PRIVATE
         ActionInitialization.hh
         Analysis.hh
+        ConfigCustomization.hh
         CrystalHit.hh
         CrystalSensitiveDetector.hh
         DetectorConstruction.hh
