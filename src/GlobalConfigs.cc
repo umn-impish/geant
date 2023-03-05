@@ -4,31 +4,32 @@
 
 #include <fstream>
 #include <stdexcept>
+#include <mutex>
+#include <thread>
 
 namespace ImpressForGrips {
 
 const std::string GlobalConfigs::DEFAULT_CFG_FN = "simulation.config.file";
+const std::string GlobalConfigs::NO_FILE = "____NO_FILE_BLAH";
 
 #include <ConfigCustomization.hh>
 
-GlobalConfigs& GlobalConfigs::instance()
+const GlobalConfigs& GlobalConfigs::instance(const std::string& fn)
 {
-    static GlobalConfigs igc;
+    static GlobalConfigs igc(fn);
+    if (fn != NO_FILE && fn != igc.currentFileName)
+        throw std::runtime_error("filename mismatch for GlobalConfigs");
     return igc;
 }
 
-GlobalConfigs::GlobalConfigs()
+GlobalConfigs::GlobalConfigs(const std::string& fn) : 
+    currentFileName(fn)
 {
-    loadConfig(DEFAULT_CFG_FN);
+    loadConfig(fn);
 }
 
 GlobalConfigs::~GlobalConfigs()
 { }
-
-void GlobalConfigs::reload(const std::string& newFileName)
-{
-    loadConfig(newFileName);
-}
 
 void GlobalConfigs::loadConfig(const std::string& fn)
 {

@@ -29,8 +29,9 @@ class AnalysisFileWrapper
 
         void reset(std::uint64_t newTimePfx);
         void updateFlareId(const G4String& fid);
-    private:
+
         G4String buildFilename();
+    private:
         std::uint64_t timePfx;
         bool isBinary;
         G4String fileNamePrefix;
