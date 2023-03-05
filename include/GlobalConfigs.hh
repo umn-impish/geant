@@ -21,9 +21,6 @@ class GlobalConfigs
     public:
         static GlobalConfigs& instance();
 
-        // delete these bc we have a singleton
-        GlobalConfigs(GlobalConfigs&) =delete;
-        void operator=(const GlobalConfigs&) =delete;
         ~GlobalConfigs();
 
         void reload(const std::string& newFileName);

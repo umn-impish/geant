@@ -1,12 +1,12 @@
 # prefix the folders saved
-save-prefix THE-PREFIX-CHANGE-ME
+save-prefix pfx
 attenuator-choice nothing
 optical-draw-frequency 1
 
 scintillator-material gagg
 save-each-cryst-hit-energy 0
 save-scintillator-positions 0
-save-sipm-positions 0
+save-sipm-positions 1
 save-sipm-energies 0
 
 sipms-per-row 7
