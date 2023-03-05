@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 
   namespace ifg = ImpressForGrips;
   if (argc > 1) {
-    ifg::GlobalConfigs::instance().reload(argv[1]);
+    ifg::GlobalConfigs::instance(argv[1]);
   }
 
   auto* runManager =

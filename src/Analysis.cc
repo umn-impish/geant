@@ -122,8 +122,14 @@ void Analysis::saveFiles(G4bool isMaster)
 
 void Analysis::saveConfig()
 {
-    const auto& igc = GlobalConfigs::instance();
-    cfgOut.file() << igc;
+    // writing doesn't work; try copying the file.
+    const std::string cfgFn = GlobalConfigs::instance().fileName();
+    const std::string destFn = cfgOut.buildFilename();
+    cfgOut.file().flush();
+    cfgOut.file().close();
+
+    std::filesystem::remove(destFn);
+    std::filesystem::copy(cfgFn, destFn);
 }
 
 void Analysis::saveEvent(const G4Event* evt)

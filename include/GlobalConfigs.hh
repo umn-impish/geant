@@ -19,11 +19,10 @@ namespace ImpressForGrips {
 class GlobalConfigs
 {
     public:
-        static GlobalConfigs& instance();
+        static const GlobalConfigs& instance(const std::string& fn = NO_FILE);
+        const std::string& fileName() const { return currentFileName; }
 
         ~GlobalConfigs();
-
-        void reload(const std::string& newFileName);
 
         template<class T>
         T configOption(const std::string& key) const
@@ -80,11 +79,15 @@ class GlobalConfigs
         // last modified 24 dec 2021 (now using sunxspex + CHIANTI)
         static const std::unordered_map<std::string, G4double> ATTENUATOR_THICKNESSES;
     private:
-        GlobalConfigs();
+        GlobalConfigs(const std::string& fn);
+        GlobalConfigs() =delete;
+        std::string currentFileName;
         void loadConfig(const std::string& fn);
 
         std::unordered_map<std::string, std::any> configMap;
         friend std::ostream& operator<<(std::ostream& os, const GlobalConfigs& igf);
+
+        static const std::string NO_FILE;
 };
 
 }
