@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 
   namespace ifg = ImpressForGrips;
   if (argc > 1) {
-    ifg::GlobalConfigs::instance().reload(argv[1]);
+    ifg::GlobalConfigs::instance(argv[1]);
   }
 
   auto* runManager =
@@ -31,6 +31,17 @@ int main(int argc, char* argv[])
   runManager->SetUserInitialization(new ifg::DetectorConstruction());
   runManager->SetUserInitialization(new ifg::PhysicsList());
   runManager->SetUserInitialization(new ifg::ActionInitialization());
+
+  const char* envNumCores = std::getenv("SLURM_NUM_CORES");
+  size_t numCores;
+  if (envNumCores != nullptr) {
+      std::stringstream ss(envNumCores);
+      ss >> numCores;
+  }
+  else {
+      numCores = G4Threading::G4GetNumberOfCores();
+  }
+  runManager->SetNumberOfThreads(numCores);
   
   G4VisManager* visManager = new G4VisExecutive;
   visManager->Initialize();

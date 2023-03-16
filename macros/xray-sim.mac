@@ -8,4 +8,4 @@
 /gps/ene/type Mono
 /gps/ene/mono 30 keV
 
-/run/beamOn 5
+/run/beamOn 600
