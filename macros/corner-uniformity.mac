@@ -1,0 +1,11 @@
+/control/execute macros/center-corner-one.mac
+/run/beamOn 600
+
+/control/execute macros/center-corner-two.mac
+/run/beamOn 600
+
+/control/execute macros/center-corner-three.mac
+/run/beamOn 600
+
+/control/execute macros/center-corner-four.mac
+/run/beamOn 600
