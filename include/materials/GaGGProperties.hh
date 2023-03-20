@@ -22,7 +22,7 @@ FRACTIONS = {
 
 
 static const double RESOLUTION_SCALE = 1;
-static const double SCINT_YIELD = 30000 / MeV;
+static const double SCINT_YIELD = 40 / keV;
 static const double DECAY_TIME_CONSTANT = 50 * ns;
 
 static const std::vector<double> SCINT_ENERGIES = {
