@@ -12,9 +12,9 @@ import matplotlib.figure
 import matplotlib.axes
 import numpy as np
 
-style_file = '../interactive.mplstyle'
-plt.style.use(style_file)
-matplotlib.use('qtagg')
+#style_file = '../interactive.mplstyle'
+#plt.style.use(style_file)
+#matplotlib.use('qtagg')
 
 
 def main():
