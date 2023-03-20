@@ -7,7 +7,12 @@ def buildSimConfig(file_name: str,scint_name: str,build_cladd: int,reflector: st
 	cnfg_fi.write("attenuator-choice nothing\n")
 	cnfg_fi.write("optical-draw-frequency 1\n")
 	cnfg_fi.write("\n")
-	cnfg_fi.write("scintillator-material " + scint_name + "\n")
+
+	if scint_name == "GAGG":
+		cnfg_fi.write("scintillator-material gagg\n")
+	elif scint_name == "LYSO":
+		cnfg_fi.write("scintillator-material lyso\n")
+		
 	cnfg_fi.write("save-each-cryst-hit-energy 0\n")
 	cnfg_fi.write("save-scintillator-positions 1\n")
 	cnfg_fi.write("save-sipm-positions 1\n")
