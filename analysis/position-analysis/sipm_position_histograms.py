@@ -23,8 +23,9 @@ def main():
         # decouple data processing from plotting
         # generally a good practice.
         # then you can reuse the processing stuff elsewhere.
+        name = ""
         hg, xe, ye = twod_hist_sipm_positions(fold)
-        fig, ax = plot_twod_sipm_histogram(xe, ye, hg)
+        fig, ax = plot_twod_sipm_histogram(xe, ye, hg, name)
         plt.show()
 
 
@@ -33,16 +34,17 @@ def main():
 def plot_twod_sipm_histogram(
     xedges: np.ndarray,
     yedges: np.ndarray,
-    hg: np.ndarray
+    hg: np.ndarray,
+    hist_title: str
 ) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes]:
     fig, ax = plt.subplots(figsize=(10, 4), layout='tight')
     im = ax.pcolormesh(xedges, yedges, hg.transpose())
     ax.set(
-        title='sipm hist 2d histogram',
+        title=hist_title,
         xlabel='x pos (mm)',
         ylabel='y pos (mm)'
     )
-    fig.colorbar(im, ax=ax, label='# of hits')
+    fig.colorbar(im, ax=ax, label='probability')
     return fig, ax
 
 
@@ -54,14 +56,14 @@ def twod_hist_sipm_positions(fold: str) -> tuple[np.ndarray, np.ndarray, np.ndar
     # combine all positions into one big list
     combined = [p for d in dat for p in d[1]]
     x, y = [d[0] for d in combined], [d[1] for d in combined]
-    return np.histogram2d(x, y, bins=[edges['x'], edges['y']])
+    return np.histogram2d(x, y, bins=[edges['x'], edges['y']], density=True)
 
 
 def load_config(cfg_fn: str) -> dict[str, str]:
     ret = dict()
     with open(cfg_fn, 'r') as f:
         for line in f:
-            if line[0] == '#': continue
+            if line[0] == '#' or line == "\n": continue
             k, v = line.split()
             ret[k] = v
     return ret
