@@ -24,6 +24,7 @@ ASSIGN_KEY(kSCINTILLATOR_YZ_FACES_FINISH,            "scintillator-yz-faces-fini
 ASSIGN_KEY(kSCINTILLATOR_CLADDING_TYPE,              "scintillator-cladding-type")
 ASSIGN_KEY(kSCINTILLATOR_CLADDING_AIR_GAP_THICKNESS, "scintillator-cladding-air-gap-thickness")
 ASSIGN_KEY(kBUILD_SCINTILLATOR_CLADDING,             "build-scintillator-cladding")
+ASSIGN_KEY(kREFLECTOR_THICKNESS,                     "reflector-thickness")
 
 ASSIGN_KEY(kNUM_SIPM_ROWS,                           "num-sipm-rows")
 ASSIGN_KEY(kSIPMS_PER_ROW,                           "sipms-per-row")
@@ -54,6 +55,7 @@ const std::unordered_map<std::string, pt> GlobalConfigs::KEY_TYPE_PARSE = {
     {kSCINTILLATOR_CLADDING_TYPE,              pt::vSTRING},
     {kSCINTILLATOR_CLADDING_AIR_GAP_THICKNESS, pt::vDOUBLE},
     {kBUILD_SCINTILLATOR_CLADDING,             pt::vBOOL},
+    {kREFLECTOR_THICKNESS,                     pt::vDOUBLE},
 
     {kSIPMS_PER_ROW,                           pt::vINT},
     {kNUM_SIPM_ROWS,                           pt::vINT},

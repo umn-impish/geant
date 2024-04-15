@@ -2,6 +2,9 @@
 #include "DetectorConstruction.hh"
 #include "ActionInitialization.hh"
 #include "PhysicsList.hh"
+#include "FTFP_BERT.hh"
+#include "QGSP_BIC.hh"
+#include <G4PhysListFactory.hh>
 
 #include "G4RunManagerFactory.hh"
 
@@ -16,7 +19,12 @@
 int main(int argc, char* argv[])
 {
   G4UIExecutive* ui = nullptr;
-  if (argc == 1 || argc == 2) {
+  if (argc < 2) {
+      std::cerr << "must provide at least simulation config file as first argument" << std::endl;
+      return -1;
+  }
+
+  if (argc == 2) {
     ui = new G4UIExecutive(argc, argv);
   }
 
@@ -28,8 +36,14 @@ int main(int argc, char* argv[])
   auto* runManager =
     G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default);
 
+  G4PhysListFactory plf;
+  constexpr auto plName = "QGSP_BIC_HP_EMZ";
+  auto* pl = plf.GetReferencePhysList(plName);
+  runManager->SetUserInitialization(pl);
+  // auto* physicsList = new FTFP_BERT;
+  // physicsList->RegisterPhysics( new G4RadioactiveDecayPhysics );
+  // runManager->SetUserInitialization( physicsList );
   runManager->SetUserInitialization(new ifg::DetectorConstruction());
-  runManager->SetUserInitialization(new ifg::PhysicsList());
   runManager->SetUserInitialization(new ifg::ActionInitialization());
 
   const char* envNumCores = std::getenv("SLURM_NUM_CORES");
@@ -48,7 +62,7 @@ int main(int argc, char* argv[])
 
   // need to enable scintillation
   // you can disable it for testing
-  G4OpticalParameters::Instance()->SetProcessActivation("Scintillation", true);
+  G4OpticalParameters::Instance()->SetProcessActivation("Scintillation", false);
   // I have found Cherenkov radiation to be error-prone
   G4OpticalParameters::Instance()->SetProcessActivation("Cerenkov", false);
 

@@ -3,6 +3,7 @@
 #include "DetectorConstruction.hh"
 #include "SiSensitiveDetector.hh"
 
+#include "G4GenericIon.hh"
 #include "G4Step.hh"
 #include "G4Event.hh"
 #include "G4RunManager.hh"
@@ -90,6 +91,9 @@ void SteppingAction::UserSteppingAction(const G4Step* step)
     auto* track = step->GetTrack();
     if (track->GetDefinition() == G4OpticalPhoton::Definition()) {
         processOptical(step);
+    }
+    else if (track->GetDefinition() == G4GenericIon::Definition()) {
+        G4cout << "GOT AN ION" << G4endl;
     }
 }
 

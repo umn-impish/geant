@@ -1,0 +1,17 @@
+# Needed to allow radioactive decay
+/process/had/rdm/thresholdForVeryLongDecayTime 1.0e+60 year
+
+/gps/pos/type Point
+/gps/pos/centre 0 0.5 0 cm
+/gps/ang/type iso
+
+/gps/particle ion
+/gps/ion 27 57
+
+/gps/ene/mono 0 keV
+# /gps/particle gamma
+# /gps/ene/type Mono
+# /gps/ene/mono 59.5 keV
+
+# /run/printProgress 100
+# /run/beamOn 10000

@@ -1,0 +1,4 @@
+# setup
+/control/execute macros/co57.mac
+
+/run/beamOn 5000000

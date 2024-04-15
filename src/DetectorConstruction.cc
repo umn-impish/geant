@@ -194,7 +194,7 @@ void DetectorConstruction::makeReflector()
   const auto airGap = gc.configOption<double>(
       GC::kSCINTILLATOR_CLADDING_AIR_GAP_THICKNESS) * micrometer;
   
-  const double halfThick = REFLECTOR_THICK / 2;
+  const double halfThick = (gc.configOption<double>(GC::kREFLECTOR_THICKNESS) * millimeter) / 2;
   const auto extra = airGap + halfThick;
   const G4double hx = scintBox->GetXHalfLength() + extra,
                  hy = scintBox->GetYHalfLength() + extra,

@@ -1,0 +1,39 @@
+# Manually add Co57 X-rays and gammas
+
+
+# Gammas
+/gps/particle gamma
+/gps/ene/mono 122 keV
+/gps/pos/centre 0 0.5 0 cm
+/gps/ang/type iso
+/gps/source/intensity 0.86
+
+/gps/source/add 0.1
+/gps/particle gamma
+/gps/ene/mono 136 keV
+/gps/pos/centre 0 0.5 0 cm
+/gps/ang/type iso
+
+/gps/source/add 0.09
+/gps/particle gamma
+/gps/ene/mono 14.4 keV
+/gps/pos/centre 0 0.5 0 cm
+/gps/ang/type iso
+
+
+# X-rays
+/gps/source/add 0.32
+/gps/particle gamma
+/gps/ene/mono 6.40 keV
+/gps/pos/centre 0 0.5 0 cm
+/gps/ang/type iso
+
+/gps/source/add 0.16
+/gps/particle gamma
+/gps/ene/mono 6.39 keV
+/gps/pos/centre 0 0.5 0 cm
+/gps/ang/type iso
+
+
+/run/printProgress 10000
+# /run/beamOn 1000
