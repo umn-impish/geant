@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
   G4PhysListFactory plf;
   constexpr auto plName = "QGSP_BIC_HP_EMZ";
   auto* pl = plf.GetReferencePhysList(plName);
+  pl->RegisterPhysics(new G4OpticalPhysics);
   runManager->SetUserInitialization(pl);
   // auto* physicsList = new FTFP_BERT;
   // physicsList->RegisterPhysics( new G4RadioactiveDecayPhysics );
@@ -62,7 +63,7 @@ int main(int argc, char* argv[])
 
   // need to enable scintillation
   // you can disable it for testing
-  G4OpticalParameters::Instance()->SetProcessActivation("Scintillation", false);
+  G4OpticalParameters::Instance()->SetProcessActivation("Scintillation", true);
   // I have found Cherenkov radiation to be error-prone
   G4OpticalParameters::Instance()->SetProcessActivation("Cerenkov", false);
 
