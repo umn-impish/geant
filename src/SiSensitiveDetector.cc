@@ -56,11 +56,13 @@ processOptical(const G4Step* step)
     if (edep == 0)
         return;
 
+    double trackLength = step->GetTrack()->GetTrackLength();
     auto pos = step->GetPostStepPoint()->GetPosition();
+
     // we want GlobalTime because it's the time since the last *event* started!
     // LocalTime is the time since the track was created (we don't want this)
     auto t = step->GetPostStepPoint()->GetGlobalTime();
-    auto* hit = new SiHit(pos, t, edep);
+    auto* hit = new SiHit{pos, t, edep, trackLength};
     hitsCollection->insert(hit);
 }
 }

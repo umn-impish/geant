@@ -1,0 +1,27 @@
+# Test out how the collection changes as a function of a couple positions
+# with just optical photons being released at a UV energy
+
+# LYSO emission peak: 410nm = 3.024 eV
+/gps/ene/type Mono
+/gps/ene/mono 3.024 eV
+
+/gps/particle opticalphoton
+
+# Start near the front
+/gps/pos/centre 0 0 1.5 cm
+/gps/pos/type Point
+/gps/ang/type iso
+
+/gps/polarization 1 0 0
+
+/run/beamOn 30000
+
+
+# Shift and run again
+# Center of rod
+/gps/pos/centre 0 0 0 cm
+/run/beamOn 30000
+
+# Near back of rod
+/gps/pos/centre 0 0 -1.5 cm
+/run/beamOn 30000

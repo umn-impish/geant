@@ -15,10 +15,12 @@ namespace
 SiHit::SiHit(
     const G4ThreeVector& position,
     G4double arrivalTime,
-    G4double depositedEnergy
-    ) :
-        VirtualHit(position, arrivalTime),
-        depositedEnergy(depositedEnergy)
+    G4double depositedEnergy,
+    G4double trackLength
+) :
+    VirtualHit(position, arrivalTime),
+    depositedEnergy(depositedEnergy),
+    trackLength(trackLength)
 { }
 
 SiHit::~SiHit()
@@ -30,6 +32,7 @@ void SiHit::Print()
     G4cout
         << "=== Begin SiHit ===" << G4endl
         << "Energy deposited: " << std::setw(7) << G4BestUnit(depositedEnergy, "Energy") << G4endl
+        << "Track length:     " << std::setw(7) << G4BestUnit(trackLength, "Length") << G4endl
         << "Position:         " << std::setw(7) << G4BestUnit(position, "Length") << G4endl
         << "Arrival time:     " << std::setw(7) << G4BestUnit(arrivalTime, "Time") << G4endl
         << "=== End SiCrystalHit ===" << G4endl;
@@ -42,6 +45,7 @@ bool SiHit::operator==(const SiHit& rhs)
     return
         position == rhs.peekPosition() &&
         arrivalTime == rhs.peekArrivalTime() &&
+        trackLength == rhs.peekTrackLength() &&
         depositedEnergy == rhs.peekDepositedEnergy();
 }
 
@@ -49,6 +53,7 @@ const SiHit& SiHit::operator=(const SiHit& rhs)
 {
     position = rhs.peekPosition();
     arrivalTime = rhs.peekArrivalTime();
+    trackLength = rhs.peekTrackLength();
     depositedEnergy = rhs.peekDepositedEnergy();
     return *this;
 }

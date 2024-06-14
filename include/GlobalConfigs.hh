@@ -68,6 +68,7 @@ class GlobalConfigs
             kSIPM_SIDE_LENGTH,
             kSAVE_SIPM_POSITIONS,
             kSAVE_SIPM_ENERGIES,
+            kSAVE_SIPM_TRACK_LENGTHS,
             kSIPM_AIR_GAP_THICKNESS,
 
             kLIGHT_GUIDE_THICKNESS;
