@@ -1,4 +1,0 @@
-LTspice 24.0.9 for Windows
-Circuit: * Needed to allow radioactive decay
-Start Time: Mon Apr 15 12:37:21 2024
-Fatal Error: Unknown SPICE device type "/" in "/process/had/rdm/thresholdforverylongdecaytime 1.0e+60 year"

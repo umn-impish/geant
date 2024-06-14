@@ -31,6 +31,7 @@ ASSIGN_KEY(kSIPMS_PER_ROW,                           "sipms-per-row")
 ASSIGN_KEY(kSIPM_SPACING,                            "sipm-spacing")
 ASSIGN_KEY(kSIPM_SIDE_LENGTH,                        "sipm-side-length")
 ASSIGN_KEY(kSAVE_SIPM_POSITIONS,                     "save-sipm-positions")
+ASSIGN_KEY(kSAVE_SIPM_TRACK_LENGTHS,                 "save-sipm-track-lengths")
 ASSIGN_KEY(kSAVE_SIPM_ENERGIES,                      "save-sipm-energies")
 ASSIGN_KEY(kSIPM_AIR_GAP_THICKNESS,                  "sipm-air-gap-thickness")
 
@@ -62,6 +63,7 @@ const std::unordered_map<std::string, pt> GlobalConfigs::KEY_TYPE_PARSE = {
     {kSIPM_SPACING,                            pt::vDOUBLE},
     {kSIPM_SIDE_LENGTH,                        pt::vDOUBLE},
     {kSAVE_SIPM_POSITIONS,                     pt::vBOOL},
+    {kSAVE_SIPM_TRACK_LENGTHS,                 pt::vBOOL},
     {kSAVE_SIPM_ENERGIES,                      pt::vBOOL},
     {kSIPM_AIR_GAP_THICKNESS,                  pt::vDOUBLE},
 
