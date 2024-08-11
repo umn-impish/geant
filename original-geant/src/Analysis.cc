@@ -63,6 +63,7 @@ Analysis::Analysis() :
     const auto& igc = GlobalConfigs::instance();
     saveSiEnergies = igc.configOption<bool>(GlobalConfigs::kSAVE_SIPM_ENERGIES);
     saveSiPositions = igc.configOption<bool>(GlobalConfigs::kSAVE_SIPM_POSITIONS);
+    saveSiTrackLengths = igc.configOption<bool>(GlobalConfigs::kSAVE_SIPM_TRACK_LENGTHS);
     G4AccumulableManager::Instance()->RegisterAccumulable(totalEvents);
     wrappers = {&crystOut, &specIn, &siOut, &siEngOut, &scintOut, &cfgOut};
 }
@@ -78,13 +79,6 @@ Analysis::~Analysis()
 
 std::uint32_t Analysis::currentRunNumber()
 { return runNumber; }
-
-void Analysis::updateFlareIdentifier(const std::string& fid)
-{
-    flareIdentifier = fid;
-    for (auto* w : wrappers)
-        w->updateFlareId(fid);
-}
 
 void Analysis::initFiles(G4bool isMaster)
 {
@@ -253,16 +247,24 @@ void Analysis::printSiHits(const std::vector<VirtualHit*>* vec)
 
 void Analysis::saveSiHits(const std::vector<VirtualHit*>* vec)
 {
-    siOut.file() << vec->size();
-    if (saveSiPositions) {
+    siOut.file() << vec->size() << ' ';
+    if (saveSiPositions || saveSiTrackLengths) {
         for (const auto* h : *vec) {
-            const auto& p = h->peekPosition();
-            const auto tofa = h->peekArrivalTime();
-            siOut.file()
-                << " (" << p.x()/mm << ',' << p.y()/mm << ',' << p.z()/mm
-                << ',' << tofa/ns << ')';
+            if (saveSiPositions) {
+                const auto& p = h->peekPosition();
+                const auto tofa = h->peekArrivalTime();
+                siOut.file()
+                    << "(" << p.x()/mm << ',' << p.y()/mm << ',' << p.z()/mm
+                    << ',' << tofa/ns << ") ";
+            }
+            if (saveSiTrackLengths) {
+                auto* siHit = static_cast<const SiHit*>(h);
+                const auto len = siHit->peekTrackLength();
+                siOut.file() << '_' << len/mm << ' ';
+            }
         }
     }
+
     siOut.file() << std::endl;
 
     if (saveSiEnergies) {
@@ -287,17 +289,13 @@ void Analysis::saveScintillated(std::size_t num)
 // filewrapper below
 
 AnalysisFileWrapper::AnalysisFileWrapper(
-        const G4String& fnPfx, bool isBinary, const G4String& flareId) :
+        const G4String& fnPfx, bool isBinary) :
     isBinary(isBinary),
-    fileNamePrefix(fnPfx),
-    flareId(flareId)
+    fileNamePrefix(fnPfx)
 { }
 
 AnalysisFileWrapper::~AnalysisFileWrapper()
 { }
-
-void AnalysisFileWrapper::updateFlareId(const G4String& fid)
-{ flareId = fid; }
 
 void AnalysisFileWrapper::reset(std::uint64_t newTimePfx)
 {
@@ -324,8 +322,7 @@ G4String AnalysisFileWrapper::buildFilename()
         std::filesystem::create_directory(p);
 
     ss.str("");
-    std::string fidPfx = flareId.empty() ? "" : (flareId + "-");
-    ss << p.string() << "/" << fidPfx << fileNamePrefix << (isBinary? ".bin" : ".tab");
+    ss << p.string() << "/" << fileNamePrefix << (isBinary? ".bin" : ".tab");
 
     return ss.str();
 }

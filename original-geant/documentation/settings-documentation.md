@@ -16,6 +16,7 @@
 | save-scintillator-positions | whether you want to save the positions of hits within the scintillator from X-rays, electrons, etc. useful for some analyses. | none | 1 or 0
 | save-sipm-positions | whether or not you want to save the positions of optical photon hits on the SiPMs. useful for illumination analysis. | none | 1 or 0
 | save-sipm-energies | whether or not you want to save the energies of optical photons that hit the SiPMs. useful as a sanity check sometimes. | none | 1 or 0
+| save-sipm-track-lengths | whether or not you want to save the track lengths of scintillated opticals after they hit the SiPM. | none | 1 or 0
 | build-scintillator-cladding | whether or not to build the reflector around the scintillator | none | 1 or 0
 | build-scintillator-cladding | scintillator reflector thickness | millimeter | double
 | optical-draw-frequency | how often to draw an optical photon. a value of 1 means all. a value of 10 means each tenth photon gets drawn | none | int

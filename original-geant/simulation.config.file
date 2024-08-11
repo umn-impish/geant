@@ -1,5 +1,5 @@
 # prefix the folders saved
-save-prefix am241-resolution-test
+save-prefix pfx
 attenuator-choice nothing
 optical-draw-frequency 1
 
@@ -9,6 +9,7 @@ save-each-cryst-hit-energy 0
 save-scintillator-positions 0
 save-sipm-positions 0
 save-sipm-energies 0
+save-sipm-track-lengths 1
 
 sipms-per-row 1
 num-sipm-rows 1
@@ -26,7 +27,7 @@ scintillator-yz-faces-finish Polished_LUT
 
 
 # unit = nanosecond
-scintillator-time-const 50
+scintillator-time-const 40
 
 
 # allowed types: (teflon, esr)
@@ -45,5 +46,5 @@ scintillator-dz 40
 
 
 # unit = micron
-scintillator-cladding-air-gap-thickness 5
+scintillator-cladding-air-gap-thickness 0.1
 sipm-air-gap-thickness 0

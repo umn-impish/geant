@@ -21,7 +21,7 @@ class AnalysisFileWrapper
 {
     public:
         AnalysisFileWrapper(
-            const G4String& prefix, bool isBinary, const G4String& flareId="");
+            const G4String& prefix, bool isBinary);
         ~AnalysisFileWrapper();
 
         std::ofstream& file()
@@ -35,7 +35,6 @@ class AnalysisFileWrapper
         std::uint64_t timePfx;
         bool isBinary;
         G4String fileNamePrefix;
-        G4String flareId;
         std::ofstream outf;
 };
 
@@ -54,9 +53,6 @@ class Analysis
 
         void addIncidentEnergy(long double e);
         void saveScintillated(std::size_t num);
-
-        const std::string& peekFlareIdentifier()
-        { return flareIdentifier; }
 
         void updateFlareIdentifier(const std::string& fid);
 
@@ -79,17 +75,17 @@ class Analysis
         G4Accumulable<std::size_t> totalEvents;
         bool saveSiEnergies;
         bool saveSiPositions;
+        bool saveSiTrackLengths;
 
         std::vector<long double> incidentEnergiesChunk;
 
-        std::string flareIdentifier;
         using fw = AnalysisFileWrapper;
-        fw crystOut;
-        fw specIn;
-        fw siOut;
-        fw siEngOut;
-        fw scintOut;
-        fw cfgOut;
-        std::vector<AnalysisFileWrapper*> wrappers;
+          fw crystOut;
+          fw specIn;
+          fw siOut;
+          fw siEngOut;
+          fw scintOut;
+          fw cfgOut;
+          std::vector<fw*> wrappers;
 };
 }
