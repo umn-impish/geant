@@ -1,0 +1,1 @@
+- update config to put type and identifier in line (rather than manual table import)
