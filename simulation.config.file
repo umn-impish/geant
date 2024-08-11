@@ -1,5 +1,5 @@
 # prefix the folders saved
-save-prefix am241-test
+save-prefix am241-resolution-test
 attenuator-choice nothing
 optical-draw-frequency 1
 
@@ -10,7 +10,7 @@ save-scintillator-positions 0
 save-sipm-positions 0
 save-sipm-energies 0
 
-sipms-per-row 6
+sipms-per-row 1
 num-sipm-rows 1
 
 # default finish types:
@@ -30,20 +30,20 @@ scintillator-time-const 50
 
 
 # allowed types: (teflon, esr)
-scintillator-cladding-type teflon
+scintillator-cladding-type esr
 build-scintillator-cladding 1
-reflector-thickness 0.5
+reflector-thickness 0.1
 
 
 # unit = millimeter
-light-guide-thickness 1
+light-guide-thickness 0.1
 sipm-spacing 0.05
 sipm-side-length 7
-scintillator-dx 40
+scintillator-dx 5
 scintillator-dy 5
 scintillator-dz 40
 
 
 # unit = micron
-scintillator-cladding-air-gap-thickness 10
+scintillator-cladding-air-gap-thickness 5
 sipm-air-gap-thickness 0
