@@ -15,26 +15,21 @@
 #include <G4VisAttributes.hh>
 #include <CLHEP/Vector/EulerAngles.h>
 
-#define USE_CADMESH_TETGEN
-#include <CADMesh.hh>
-
 static constexpr bool checkOverlaps = true;
 static G4OpticalSurface* siOpticalSurface();
 void attachSpecularOpticalSurface(G4LogicalVolume* lv);
 
-DetectorConstruction::DetectorConstruction(std::vector<ConstructionMeta> meta_) :
+DetectorConstruction::DetectorConstruction(std::string meta_fn) :
   G4VUserDetectorConstruction(),
-  meta{meta_},
-  siLogVols{}
+
+    // We pass in the metadata file name which contains a
+    // JSON array.
+    // For some reason, json::parse parses the array to 
+    // a nested array(?) so we only want the first element.
+    meta_fn{meta_fn},
+    siLogVols{}
 {
     Materials::makeMaterials();
-
-    std::cout << "size is" << meta.size() << std::endl;
-
-    for (const auto& met : meta) {
-        std::cout << met.file << std::endl;
-        std::cout.flush();
-    }
 }
 
 DetectorConstruction::~DetectorConstruction()
@@ -74,71 +69,103 @@ DetectorConstruction::makeWorld() {
 void DetectorConstruction::importSolids() {
     auto nm = G4NistManager::Instance();
 
-    for (const auto& mdat : meta) {
-        singleImport(mdat);
+    auto meta = json::parse(std::ifstream{meta_fn});
+
+    const std::string stl = "stl", obj = "obj";
+    for (auto& [key_, mdat] : meta.items()) {
+        auto fn = mdat["file"].get<std::string>();
+        if (fn.find(".stl") != std::string::npos) {
+            auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
+            importMesh(fn, mesh, mdat);
+        }
+        else if (fn.find(".obj") != std::string::npos) {
+            // Assume the .obj file describes the 
+            // entire detector geometry (all components)
+            auto mesh = CADMesh::TessellatedMesh::FromOBJ(
+                mdat["file"].get<std::string>());
+            auto solids = mesh->GetSolids();
+
+            for (auto s : solids) {
+                auto name = s->GetName();
+                auto cur_meta = mdat[name];
+                importMesh(name, mesh, cur_meta);
+            }
+        }
+        else {
+            throw std::runtime_error{"Unrecognized file format: " + fn};
+        }
     }
 }
 
 
-void DetectorConstruction::singleImport(const ConstructionMeta& mdat) {
+void DetectorConstruction::importMesh(
+    const std::string& name,
+    std::shared_ptr<CADMesh::TessellatedMesh> mesh,
+    const json& mdat
+) {
     static std::default_random_engine en{std::random_device{}()};
     static std::uniform_real_distribution<double> dist(0, 1);
-
-    auto mesh = CADMesh::TessellatedMesh::FromSTL(mdat.file);
     // scale from whatever unit in file to mm (Geant native units)
-    mesh->SetScale(mdat.scale);
+    mesh->SetScale(mdat["scale"].get<double>());
 
-    const auto& v = mdat.translation;
+    std::vector<double> v = mdat["translation"];
     G4ThreeVector translate(v[0], v[1], v[2]);
     mesh->SetOffset(translate);
 
-    auto solid = mesh->GetSolid();
+    // auto solid = mesh->GetSolid();
+    std::vector<G4VSolid*> solids = mesh->GetSolids();
 
-    const auto& ea = mdat.euler_rotation;
-    auto rotMat = new G4RotationMatrix;
-    rotMat->setPhi(ea[0]);
-    rotMat->setTheta(ea[1]);
-    rotMat->setPsi(ea[2]);
-
-    auto* material = G4Material::GetMaterial(mdat.material);
-    if (material == nullptr) {
-        auto* nm = G4NistManager::Instance();
-        material = nm->FindOrBuildMaterial(mdat.material);
-        if (material == nullptr) {
-            throw std::runtime_error{"Cannot find material " + mdat.material};
+    for (auto solid : solids) {
+        if (solids.size() > 1 && solid->GetName() != name) {
+            continue;
         }
+
+        std::vector<double> ea = mdat["euler_rotation"];
+        auto rotMat = new G4RotationMatrix;
+        // Set phi, theta, psi all at once
+        rotMat->set(ea[2], ea[1], ea[0]);
+
+        auto mat = mdat["material"].get<std::string>();
+        auto* material = G4Material::GetMaterial(mat);
+        if (material == nullptr) {
+            auto* nm = G4NistManager::Instance();
+            material = nm->FindOrBuildMaterial(mat);
+            if (material == nullptr) {
+                throw std::runtime_error{"Cannot find material " + mat};
+            }
+        }
+        auto* lv = new G4LogicalVolume(
+            solid, material, name + "_logical"
+        );
+
+        // Give the shape a random color to differentiate it
+        G4VisAttributes va;
+        va.SetColor(
+            dist(en),
+            dist(en),
+            dist(en),
+            0.4
+        );
+
+        lv->SetVisAttributes(va);
+
+        configureVolume(lv, mdat);
+
+        auto* place = new G4PVPlacement(
+            rotMat, G4ThreeVector(), lv,
+            name + "_placement", worldLogVol,
+            false, 0, checkOverlaps
+        );
     }
-    auto* lv = new G4LogicalVolume(
-        solid, material, mdat.file + "_logical"
-    );
-
-    // Give the shape a random color to differentiate it
-    G4VisAttributes va;
-    va.SetColor(
-        dist(en),
-        dist(en),
-        dist(en),
-        0.4
-    );
-
-    lv->SetVisAttributes(va);
-
-    configureVolume(lv, mdat);
-
-    (void) new G4PVPlacement(
-        rotMat, G4ThreeVector(), lv,
-        mdat.file + "_placement", worldLogVol,
-        false, 0, checkOverlaps
-    );
 }
 
-void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const ConstructionMeta &met) {
-    if (met.type == "optical_detector") {
+void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const json &met) {
+    if (met["type"].get<std::string>() == "optical_detector") {
         auto surf = siOpticalSurface();
         (void) new G4LogicalSkinSurface("si_det_skin", lv, surf);
         siLogVols.push_back(lv);
     }
-    if (met.type == "specular_reflector") {
+    if (met["type"].get<std::string>() == "specular_reflector") {
         attachSpecularOpticalSurface(lv);
     }
     /*

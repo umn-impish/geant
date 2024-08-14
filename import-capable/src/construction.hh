@@ -5,33 +5,33 @@
 #include <G4VPhysicalVolume.hh>
 
 #include <nlohmann/json.hpp>
+#define USE_CADMESH_TETGEN
+#include <CADMesh.hh>
 using json = nlohmann::json;
-
-struct ConstructionMeta {
-    std::string file;
-    std::string material;
-    std::string type;
-    double scale;
-    std::vector<double> translation;
-    std::vector<double> euler_rotation;
-};
 
 class DetectorConstruction : public G4VUserDetectorConstruction {
 public:
     DetectorConstruction() =delete;
 
-    DetectorConstruction(std::vector<ConstructionMeta> meta);
+    DetectorConstruction(std::string);
     virtual ~DetectorConstruction();
 
     virtual G4VPhysicalVolume* Construct() override;
     void ConstructSDandField() override;
 
 private:
-    std::vector<ConstructionMeta> meta;
+    std::string meta_fn;
     std::vector<G4LogicalVolume*> siLogVols;
     G4LogicalVolume* worldLogVol;
     G4PVPlacement* makeWorld();
     void importSolids();
-    void configureVolume(G4LogicalVolume*, const ConstructionMeta&);
-    void singleImport(const ConstructionMeta&);
+    void configureVolume(G4LogicalVolume*, const json&);
+    // void importStl(const json&);
+    // void importObj(const json&);
+
+    void importMesh(
+        const std::string& name,
+        std::shared_ptr<CADMesh::TessellatedMesh> mesh,
+        const json& mdat
+    );
 };
