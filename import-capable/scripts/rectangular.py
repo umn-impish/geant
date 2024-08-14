@@ -18,6 +18,7 @@ import json
 import math
 import os
 import cadquery as cq
+import sipms
 
 # All dimensions in mm
 
@@ -52,36 +53,9 @@ reflector = (
     .shell(refl_thick)
 )
 
-
-# The optical pad is a thin piece of silicone elastomer
-# which sits right at the end of the crystal.
-# Translation will be performed in Geant after import
-optical_pad_thickness = 0.1
-# The optical pad has the same (x, y) dims as the crystal
-pad = (
-    cq.Workplane('front')
-    .box(*crystal_dims[:2], optical_pad_thickness)
-)
-
-
-# For SiPMs we are using onsemi C-series.
-# As a simplifying assumption, we take the
-# readout face to be one big piece of active
-# area, which is not really accurate--
-# there will be small gaps between them,
-# but it should be good enough for qualitative analysis.
-
-# Dimensions from C-series documentation
-# https://www.onsemi.com/download/data-sheet/pdf/microc-series-d.pdf
-sipm_side_len = 7
-sipm_thick = 0.7
-num_sipms = math.ceil(crystal_dims[0] / sipm_side_len)
-print('optical readout is equivalent to', num_sipms, 'C-series')
-optical_readout = (
-    cq.Workplane('front')
-    .box(num_sipms * sipm_side_len, sipm_side_len, sipm_thick)
-)
-
+ret = sipms.make_sipms_pad(*crystal_dims[:2])
+optical_readout = ret['sipms']
+pad = ret['pad']
 
 output_dir = 'rectangular'
 os.makedirs(output_dir, exist_ok=True)
@@ -113,31 +87,31 @@ def generate_meta(fn, mat, type_, scale=1, trans=(0, 0, 0), rot=(0, 0, 0)):
 
 # Metadata given to Geant to parse the solids into a
 # real detector
-meta = [
-    generate_meta(
+meta = {
+    'crystal': generate_meta(
         fn=save_to('crystal.stl'),
         mat='lyso',
         type_='scintillator',
     ),
-    generate_meta(
+    'reflector': generate_meta(
         fn=save_to('reflector.stl'),
         mat='esr',
         type_='specular_reflector',
         trans=(0, 0, refl_thick + air_gap)
     ),
-    generate_meta(
+    'pad': generate_meta(
         fn=save_to('pad.stl'),
         mat='pdms',
         type_='optically_active',
-        trans=(0, 0, (pad_loc := -crystal_dims[2]/2 - optical_pad_thickness/2))
+        trans=(0, 0, (pad_loc := -crystal_dims[2]/2 - sipms.optical_pad_thickness/2))
     ),
-    generate_meta(
+    'readout': generate_meta(
         fn=save_to('optical_readout.stl'),
         mat='G4_Si',
         type_='optical_detector',
-        trans=(0, 0, pad_loc - optical_pad_thickness/2 - sipm_thick/2)
+        trans=(0, 0, pad_loc - sipms.optical_pad_thickness/2 - sipms.sipm_thick/2)
     )
-]
+}
 
 with open(save_to('rect_meta.json'), 'w') as f:
-    print(json.dumps(meta, indent=2), file=f)
+    print(json.dumps(meta), file=f)
