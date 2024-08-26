@@ -1,3 +1,4 @@
 *.stl
 __pycache__
 .vscode
+analysis

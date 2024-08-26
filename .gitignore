@@ -12,3 +12,5 @@ CTestTestfile.cmake
 _deps
 .DS_Store
 .ipynb_checkpoints
+.vscode
+*.swp
