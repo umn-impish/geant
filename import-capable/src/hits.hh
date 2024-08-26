@@ -8,7 +8,7 @@ class VirtualHit : public G4VHit
 public:
     VirtualHit(const G4ThreeVector& position, G4double arrivalTime);
     ~VirtualHit() =0;
-    enum class HitType { Si };
+    enum class HitType { Si, Crystal };
 
     virtual HitType hitType() const =0;
     virtual const G4ThreeVector& peekPosition() const;
@@ -32,11 +32,21 @@ public:
 
     G4double peekDepositedEnergy() const;
 
-    void* operator new(size_t sz);
-    void operator delete(void* toDelete);
-
     void Print() override;
     HitType hitType() const override;
+
+private:
+    G4double depositedEnergy;
+};
+
+class CrystalHit : public VirtualHit {
+public:
+    CrystalHit(G4double depositedEnergy, const G4ThreeVector& position);
+    ~CrystalHit();
+    const CrystalHit& operator=(const CrystalHit& rhs);
+
+    HitType hitType() const override;
+    G4double peekDepositedEnergy() const;
 
 private:
     G4double depositedEnergy;

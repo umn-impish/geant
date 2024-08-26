@@ -7,7 +7,8 @@
 #include <G4VisAttributes.hh>
 #include <G4VVisManager.hh>
 
-G4ThreadLocal G4Allocator<SiHit>* alloc = nullptr;
+G4ThreadLocal G4Allocator<SiHit>* sialloc = nullptr;
+G4ThreadLocal G4Allocator<CrystalHit>* cralloc = nullptr;
 
 VirtualHit::VirtualHit(const G4ThreeVector& position, G4double arrivalTime) :
     arrivalTime(arrivalTime),
@@ -80,21 +81,34 @@ const SiHit& SiHit::operator=(const SiHit& rhs)
     return *this;
 }
 
-void* SiHit::operator new(size_t) {
-    if (!alloc) {
-        alloc = new G4Allocator<SiHit>;
-    }
-    return static_cast<void*>(alloc->MallocSingle());
-}
-
-void SiHit::operator delete(void* toDelete) {
-    alloc->FreeSingle(static_cast<SiHit*>(toDelete));
-}
-
 G4double SiHit::peekDepositedEnergy() const {
     return depositedEnergy;
 }
 
 VirtualHit::HitType SiHit::hitType() const {
     return HitType::Si;
+}
+
+CrystalHit::CrystalHit(G4double depositedEnergy, const G4ThreeVector& position) :
+    // XXX ignore arrival time
+    VirtualHit(position, 0),
+    depositedEnergy(depositedEnergy)
+{}
+
+const CrystalHit& CrystalHit::operator=(const CrystalHit& rhs)
+{
+    position = rhs.peekPosition();
+    arrivalTime = rhs.peekArrivalTime();
+    depositedEnergy = rhs.peekDepositedEnergy();
+    return *this;
+}
+
+CrystalHit::~CrystalHit() {}
+
+VirtualHit::HitType CrystalHit::hitType() const {
+    return HitType::Crystal;
+}
+
+G4double CrystalHit::peekDepositedEnergy() const {
+    return depositedEnergy;
 }

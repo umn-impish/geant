@@ -1,16 +1,16 @@
 # prefix the folders saved
-save-prefix am241-resolution-test
+save-prefix string collimator-angular-dist
 
 # enable-scintillation 0
-scintillator-material lyso
-save-each-cryst-hit-energy 0
-save-scintillator-positions 0
-save-sipm-positions 0
-save-sipm-energies 0
+scintillator-material string lyso
+save-each-cryst-hit-energy bool 0
+save-scintillator-positions bool 0
+save-sipm-positions bool 0
+save-sipm-energies bool 0
 
 
 # unit = nanosecond
-scintillator-time-const 50
+scintillator-time-const double 50
 
 # Geometric configurations are set via JSON
 # metadata which is passed to DetectorConstruction

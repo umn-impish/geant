@@ -55,8 +55,8 @@ Analysis::Analysis() :
     cfgOut(kCONFIG_OUT, false)
 {
     const auto& igc = GlobalConfigs::instance();
-    saveSiEnergies = igc.configOption<bool>(GlobalConfigs::kSAVE_SIPM_ENERGIES);
-    saveSiPositions = igc.configOption<bool>(GlobalConfigs::kSAVE_SIPM_POSITIONS);
+    saveSiEnergies = igc.configOption<bool>("save-sipm-energies");
+    saveSiPositions = igc.configOption<bool>("save-sipm-positions");
     wrappers = {&crystOut, &specIn, &siOut, &siEngOut, &scintOut, &cfgOut};
 }
 
@@ -143,6 +143,8 @@ void Analysis::processHitCollection(const G4VHitsCollection* hc)
     const auto* testHit = (*vec)[0];
     if (testHit->hitType() == VirtualHit::HitType::Si) {
         saveSiHits(vec);
+    } else if (testHit->hitType() == VirtualHit::HitType::Crystal) {
+        saveCrystalHits(vec);
     } else {
         G4Exception(
             "src/Analysis.cc processHitCollection",
@@ -170,6 +172,48 @@ void Analysis::printSiHits(const std::vector<VirtualHit*>* vec)
 {
     G4cout << "there were " << vec->size() << " silicon hits" << G4endl;
     G4cout.flush();
+}
+
+void Analysis::saveCrystalHits(const std::vector<VirtualHit*>* vec) {
+    const auto& igc = GlobalConfigs::instance();
+    auto saveCrystPos = igc.configOption<bool>(
+        "save-scintillator-positions"
+    );
+    auto saveEachHitEnergy = igc.configOption<bool>(
+        "save-each-cryst-hit-energy"
+    );
+
+    std::vector<G4double> deposits;
+    std::vector<G4ThreeVector> positions;
+
+    for (const auto h : *vec) {
+        auto* niceHit = static_cast<CrystalHit*>(h);
+        auto curEng = niceHit->peekDepositedEnergy();
+        auto pos = niceHit->peekPosition();
+        deposits.push_back(curEng);
+        positions.push_back(pos);
+    }
+
+    if (!saveEachHitEnergy) {
+        double sum = std::accumulate(deposits.begin(), deposits.end(), 0.);
+        crystOut.file() << (sum / keV) << ' ';
+        if (saveCrystPos) {
+            for (const auto& hitPos : positions)
+                crystOut.file() << ' ' << hitPos;
+        }
+    } else {
+        for (std::size_t i = 0; i < positions.size(); ++i) {
+            auto e = deposits[i];
+            auto pos = positions[i];
+            crystOut.file()
+                << " ("
+                    << pos.x()/mm << ','
+                    << pos.y()/mm << ','
+                    << pos.z()/mm << ','
+                    << e/keV      << ')';
+        }
+    }
+    crystOut.file() << std::endl;
 }
 
 void Analysis::saveSiHits(const std::vector<VirtualHit*>* vec)
@@ -229,8 +273,7 @@ void AnalysisFileWrapper::reset(std::uint64_t newTimePfx)
 G4String AnalysisFileWrapper::buildFilename()
 {
     auto fold = genBaseSubfolder(timePfx);
-    auto pfx = GlobalConfigs::instance().configOption<
-        std::string>(GlobalConfigs::kSAVE_PREFIX);
+    auto pfx = GlobalConfigs::instance().configOption<std::string>("save-prefix");
     std::stringstream ss;
     ss << pfx << "-run" << Analysis::currentRunNumber() << "-" << fold;
     auto prefixedFolder = ss.str();

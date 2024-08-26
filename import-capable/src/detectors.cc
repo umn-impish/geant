@@ -8,12 +8,10 @@
 #include <hits.hh>
 #include <detectors.hh>
 
-static const G4String SI_SENS_DET_SUFFIX = "_si_sens_det";
-
 SiSensitiveDetector::
 SiSensitiveDetector(const G4String& detectorName) :
     G4VSensitiveDetector(detectorName),
-    thisCollectionName(detectorName + SI_SENS_DET_SUFFIX),
+    thisCollectionName(detectorName + "_si_sens_det"),
     hitsCollectionId(-1)
 {
     collectionName.insert(thisCollectionName);
@@ -60,3 +58,44 @@ processOptical(const G4Step* step)
     hitsCollection->insert(hit);
 }
 
+CrystalSensitiveDetector::
+CrystalSensitiveDetector(const G4String& detectorName) :
+    G4VSensitiveDetector(detectorName),
+    thisCollectionName(detectorName + "_scint"),
+    hitsCollectionId(-1)
+{
+    collectionName.insert(thisCollectionName);
+}
+
+CrystalSensitiveDetector::
+~CrystalSensitiveDetector()
+{ }
+
+void CrystalSensitiveDetector::
+Initialize(G4HCofThisEvent* hcote)
+{
+    // polymorphism in the hitscollection
+    hitsCollection = new G4THitsCollection<VirtualHit>(
+        SensitiveDetectorName, thisCollectionName);
+    hitsCollectionId = G4SDManager::GetSDMpointer()->GetCollectionID(thisCollectionName);
+    hcote->AddHitsCollection(hitsCollectionId, hitsCollection);
+}
+
+G4bool CrystalSensitiveDetector::
+ProcessHits(G4Step* step, G4TouchableHistory* /* unused */)
+{
+    auto def = step->GetTrack()->GetParticleDefinition();
+    // we don't want optical photons to count as hits
+    // especially if scintillation is on
+    if (def == G4OpticalPhoton::Definition()) return false;
+
+    G4double depositedEnergy = step->GetTotalEnergyDeposit();
+    if (depositedEnergy == 0) return false;
+
+    G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
+
+    auto* hit = new CrystalHit(depositedEnergy, pos);
+
+    hitsCollection->insert(hit);
+    return true;
+}

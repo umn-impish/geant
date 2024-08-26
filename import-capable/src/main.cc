@@ -17,9 +17,14 @@
 using json = nlohmann::json;
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cerr << "supply metadata fn as sole argument" << std::endl;
+    if (argc < 2) {
+        std::cerr << "supply metadata fn as first argument--optionally supply a .mac file to run" << std::endl;
         return 1;
+    }
+
+    bool batchMode{false};
+    if (argc > 2) {
+        batchMode = true;
     }
     // assume same file name always (... ?)
     auto root = std::filesystem::canonical("/proc/self/exe").parent_path();
@@ -42,21 +47,28 @@ int main(int argc, char* argv[]) {
     runManager->SetUserInitialization(new DetectorConstruction{argv[1]});
     runManager->SetUserInitialization(new ActionInitialization);
 
-    G4VisManager* visManager = new G4VisExecutive;
-    visManager->Initialize();
-
     // optionally enable scintillation
     G4OpticalParameters::Instance()->SetProcessActivation("Scintillation", false);
 
     // I have found Cherenkov radiation to be error-prone; disable it
     G4OpticalParameters::Instance()->SetProcessActivation("Cerenkov", false);
 
+
     auto* uiMan = G4UImanager::GetUIpointer();
-    uiMan->ApplyCommand("/control/execute macros/init_vis.mac");
-    ui->SessionStart();
+    if (batchMode) {
+        G4String command = "/control/execute ";
+        G4String fileName = argv[2];
+        uiMan->ApplyCommand("/run/initialize");
+        uiMan->ApplyCommand(command + fileName);
+    } else {
+        G4VisManager* visManager = new G4VisExecutive;
+        visManager->Initialize();
+        uiMan->ApplyCommand("/control/execute macros/init_vis.mac");
+        ui->SessionStart();
+        delete visManager;
+    }
 
     delete ui;
-    delete visManager;
     delete runManager;
 
     return 0;

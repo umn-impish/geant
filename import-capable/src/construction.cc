@@ -27,7 +27,8 @@ DetectorConstruction::DetectorConstruction(std::string meta_fn) :
     // For some reason, json::parse parses the array to 
     // a nested array(?) so we only want the first element.
     meta_fn{meta_fn},
-    siLogVols{}
+    siLogVols{},
+    crLogVols{}
 {
     Materials::makeMaterials();
 }
@@ -50,7 +51,7 @@ DetectorConstruction::makeWorld() {
     G4VisAttributes va;
 
     G4Material* vac = G4Material::GetMaterial("vacuum");
-    const G4double worldSize = 10*cm;
+    const G4double worldSize = 50*cm;
     auto* worldBox =    
     new G4Box("World",
         0.5*worldSize, 0.5*worldSize, 0.5*worldSize);
@@ -140,13 +141,17 @@ void DetectorConstruction::importMesh(
 
         // Give the shape a random color to differentiate it
         G4VisAttributes va;
-        va.SetColor(
-            dist(en),
-            dist(en),
-            dist(en),
-            0.4
-        );
-
+        if (!mdat.contains("color")) {
+            va.SetColor(
+                dist(en),
+                dist(en),
+                dist(en),
+                0.4
+            );
+        } else {
+            auto col = mdat["color"].get<std::vector<double> >();
+            va.SetColor(col[0], col[1], col[2], col[3]);
+        }
         lv->SetVisAttributes(va);
 
         configureVolume(lv, mdat);
@@ -165,8 +170,11 @@ void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const json &met)
         (void) new G4LogicalSkinSurface("si_det_skin", lv, surf);
         siLogVols.push_back(lv);
     }
-    if (met["type"].get<std::string>() == "specular_reflector") {
+    else if (met["type"].get<std::string>() == "specular_reflector") {
         attachSpecularOpticalSurface(lv);
+    }
+    else if (met["type"].get<std::string>() == "scintillator") {
+        crLogVols.push_back(lv);
     }
     /*
      In terms of optics, nothing else needs to happen here.
@@ -189,6 +197,12 @@ void DetectorConstruction::ConstructSDandField() {
     G4SDManager::GetSDMpointer()->AddNewDetector(sd);
     for (auto lv : siLogVols) {
         lv->SetSensitiveDetector(sd);
+    }
+
+    auto* cd = new CrystalSensitiveDetector("crdet");
+    G4SDManager::GetSDMpointer()->AddNewDetector(cd);
+    for (auto lv : crLogVols) {
+        lv->SetSensitiveDetector(cd);
     }
 }
 

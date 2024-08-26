@@ -37,46 +37,6 @@ class GlobalConfigs
         
         static const std::string DEFAULT_CFG_FN;
 
-        // see .cc for what these are
-        static const std::string
-            kENABLE_SCINTILLATION,
-            kMAKE_ONLY_CRYSTAL,
-            kATTENUATOR_CHOICE,
-            kOPTICAL_DRAW_FREQUENCY,
-            kSAVE_PREFIX,
-            kSAVE_EACH_SCINTILLATOR_HIT_ENERGY,
-            kSAVE_SCINTILLATOR_POSITIONS,
-
-            kSCINTILLATOR_MATERIAL,
-            kSCINTILLATOR_TIME_CONST,
-            kSCINTILLATOR_DX,
-            kSCINTILLATOR_DY,
-            kSCINTILLATOR_DZ,
-            kSCINTILLATOR_MINUS_Z_FACE_FINISH,
-            kSCINTILLATOR_XZ_FACES_FINISH,
-            kSCINTILLATOR_YZ_FACES_FINISH,
-            kSCINTILLATOR_CLADDING_TYPE,
-            kBUILD_SCINTILLATOR_CLADDING,
-            kREFLECTOR_THICKNESS,
-            kSCINTILLATOR_CLADDING_AIR_GAP_THICKNESS,
-
-            kNUM_SIPM_ROWS,
-            kSIPMS_PER_ROW,
-            kSIPM_SPACING,
-            kSIPM_SIDE_LENGTH,
-            kSAVE_SIPM_POSITIONS,
-            kSAVE_SIPM_ENERGIES,
-            kSIPM_AIR_GAP_THICKNESS,
-
-            kLIGHT_GUIDE_THICKNESS;
-
-        enum class ParseType {vBOOL, vDOUBLE, vINT, vSTRING};
-        static const std::unordered_map<std::string, ParseType> KEY_TYPE_PARSE;
-
-        // from analytical model
-        // round to nice numbers
-        // last modified 24 dec 2021 (now using sunxspex + CHIANTI)
-        static const std::unordered_map<std::string, G4double> ATTENUATOR_THICKNESSES;
     private:
         GlobalConfigs(const std::string& fn);
         GlobalConfigs() =delete;
@@ -84,8 +44,6 @@ class GlobalConfigs
         void loadConfig(const std::string& fn);
 
         std::unordered_map<std::string, std::any> configMap;
-        friend std::ostream& operator<<(std::ostream& os, const GlobalConfigs& igf);
-
         static const std::string NO_FILE;
 };
 

@@ -10,8 +10,6 @@
 const std::string GlobalConfigs::DEFAULT_CFG_FN = "simulation.config.file";
 const std::string GlobalConfigs::NO_FILE = "____NO_FILE_BLAH";
 
-#include <config_customization.hh>
-
 const GlobalConfigs& GlobalConfigs::instance(const std::string& fn)
 {
     static GlobalConfigs igc(fn);
@@ -37,7 +35,7 @@ void GlobalConfigs::loadConfig(const std::string& fn)
             "can't load " + fn + "! make sure it's in the executible directory.");
     }
 
-    std::string line, key;
+    std::string line, key, type;
     while (std::getline(ifs, line)) {
         try {
             static const char COMMENT_MARKER = '#';
@@ -45,33 +43,25 @@ void GlobalConfigs::loadConfig(const std::string& fn)
                 continue;
 
             std::stringstream ss(line);
-            ss >> key;
-            const auto& loadType = KEY_TYPE_PARSE.at(key);
-            switch (loadType) {
-                case pt::vBOOL: {
-                    bool b;
-                    ss >> b;
-                    configMap[key] = b;
-                    break;
-                } case pt::vDOUBLE: {
-                    double d;
-                    ss >> d;
-                    configMap[key] = d;
-                    break;
-                } case pt::vINT: {
-                    int i;
-                    ss >> i;
-                    configMap[key] = i;
-                    break;
-                } case pt::vSTRING: {
-                    std::string st;
-                    ss >> st;
-                    configMap[key] = st;
-                    break;
-                } default: {
-                    throw std::out_of_range("got a value type that can't be parsed in GlobalConfigs");
-                    break;
-                }
+            ss >> key >> type;
+            if (type == "bool") {
+                bool b;
+                ss >> b;
+                configMap[key] = b;
+            } else if (type == "double") {
+                double d;
+                ss >> d;
+                configMap[key] = d;
+            } else if (type == "string") {
+                std::string st;
+                ss >> st;
+                configMap[key] = st;
+            }
+            else {
+                throw std::out_of_range(
+                    "got a value type that can't be parsed in GlobalConfigs: "
+                    + key + " of type " + type
+                );
             }
         }
         catch (const std::out_of_range& e) {
@@ -81,32 +71,4 @@ void GlobalConfigs::loadConfig(const std::string& fn)
                 errStr.c_str());
         }
     }
-}
-
-std::ostream& operator<<(std::ostream& os, const GlobalConfigs& igf) {
-    for (const auto& [k, v] : igf.configMap) {
-        os << k << ' ';
-        const auto& loadType = igf.KEY_TYPE_PARSE.at(k);
-        switch (loadType) {
-            case pt::vBOOL: {
-                os << igf.configOption<bool>(k);
-                break;
-            } case pt::vDOUBLE: {
-                os << igf.configOption<double>(k);
-                break;
-            } case pt::vINT: {
-                os << igf.configOption<int>(k);
-                break;
-            } case pt::vSTRING: {
-                os << igf.configOption<std::string>(k);
-                break;
-            } default: {
-                throw std::out_of_range("got a value type that can't be parsed in GlobalConfigs");
-                break;
-            }
-        }
-        os << std::endl;
-    }
-
-    return os;
 }
