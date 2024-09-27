@@ -8,6 +8,7 @@
 #include <G4OpticalParameters.hh>
 #include <G4OpticalPhysics.hh>
 #include <G4PhysListFactory.hh>
+#include <G4RadioactiveDecayPhysics.hh>
 #include <G4RunManagerFactory.hh>
 #include <G4UImanager.hh>
 #include <G4VisExecutive.hh>
@@ -41,6 +42,8 @@ int main(int argc, char* argv[]) {
     G4PhysListFactory plf;
     auto* pl = plf.GetReferencePhysList("FTFP_BERT");
     pl->RegisterPhysics(new G4OpticalPhysics);
+    pl->RegisterPhysics(new G4OpticalPhysics);
+    pl->RegisterPhysics(new G4RadioactiveDecayPhysics);
     runManager->SetUserInitialization(pl);
 
     // Construction needs the material metadata from JSON file
