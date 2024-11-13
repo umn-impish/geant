@@ -1,0 +1,12 @@
+/gps/particle gamma
+
+/gps/pos/centre 0 0 5 cm
+/gps/pos/type Plane
+/gps/pos/shape Rectangle
+/gps/pos/halfx 20 cm
+/gps/pos/halfy 20 cm
+
+/gps/direction 0 0 -1
+
+/gps/ene/type Mono
+/gps/ene/mono 30 keV

@@ -1,0 +1,17 @@
+/gps/particle gamma
+
+/gps/pos/centre 0 0 2 cm
+/gps/pos/type Plane
+/gps/pos/shape Circle
+/gps/pos/radius 10 mm
+
+/gps/direction 0 0 -1
+
+# Flat distribution
+/gps/ene/type Lin
+/gps/ene/min 1 keV
+/gps/ene/max 200 keV
+/gps/ene/gradient 0
+/gps/ene/intercept 1
+
+/run/beamOn 10000000
