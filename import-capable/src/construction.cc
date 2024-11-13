@@ -207,8 +207,7 @@ void DetectorConstruction::ConstructSDandField() {
 }
 
 
-static G4OpticalSurface* siOpticalSurface()
-{
+static G4OpticalSurface* siOpticalSurface() {
     static G4ThreadLocal G4OpticalSurface* ss = nullptr;
     if (ss) return ss;
     ss = new G4OpticalSurface("si_surf");
