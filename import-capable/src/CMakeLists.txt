@@ -1,5 +1,5 @@
 add_executable(
-    basic-optics
+    cadmesh-wrapper
         main.cc
         actions.cc
         analysis.cc
@@ -9,7 +9,7 @@ add_executable(
 )
 
 target_include_directories(
-    basic-optics
+    cadmesh-wrapper
     PUBLIC
     .
 )
