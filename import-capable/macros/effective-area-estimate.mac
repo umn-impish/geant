@@ -1,0 +1,17 @@
+/gps/particle gamma
+
+/gps/pos/centre 0 0 5 cm
+/gps/pos/type Plane
+/gps/pos/shape Rectangle
+/gps/pos/halfx 75 mm
+/gps/pos/halfy 40 mm
+
+/gps/direction 0 0 -1
+
+/gps/ene/type Lin
+/gps/ene/min 1 keV
+/gps/ene/max 600 keV
+/gps/ene/gradient 0
+/gps/ene/intercept 1
+
+/run/beamOn 200000

@@ -13,6 +13,12 @@ namespace Materials {
     void makeSilicon();
     void makeEsr();
     void makePdms();
+    void makeAntimonizedLead();
+    void makeTungsten3dFilament();
+    void makeKovar();
+    void makeTecCeramic();
+    void makeSddSubstrate();
+    void makeHalfSilicon();
 
     void makeCeBr3();
     void configureCeBr3Scintillation();
@@ -24,8 +30,7 @@ namespace {
     static const G4bool useSpline = true;
 }
 
-namespace Materials
-{
+namespace Materials {
 void makeMaterials()
 {
     if (!G4Material::GetMaterial(kVACUUM))
@@ -56,6 +61,19 @@ void makeMaterials()
         makeEsr();
     if (!G4Material::GetMaterial(kPDMS))
         makePdms();
+
+    if (!G4Material::GetMaterial("antimonized-lead")) {
+        makeAntimonizedLead();
+    }
+
+    if (!G4Material::GetMaterial("tungsten-pla-filament")) {
+        makeTungsten3dFilament();
+    }
+
+    makeKovar();
+    makeTecCeramic();
+    makeSddSubstrate();
+    makeHalfSilicon();
 }
 
 std::string selectScintillator(const std::string& choice)
@@ -412,4 +430,112 @@ void makePdms()
     pdms->SetMaterialPropertiesTable(pdmsPt);
 }
 
+void makeAntimonizedLead() {
+    auto* nm = G4NistManager::Instance();
+    auto* pb = nm->FindOrBuildMaterial("G4_Pb");
+    auto* sb = nm->FindOrBuildMaterial("G4_Sb");
+
+    auto* antimonized = new G4Material(
+        "antimonized-lead", 10.0 * g/cm3, 2,
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+
+    // "super hard" = 90% lead, 10% antimony
+    antimonized->AddMaterial(pb, 0.9);
+    antimonized->AddMaterial(sb, 0.1);
 }
+
+void makeTungsten3dFilament() {
+    auto* nm = G4NistManager::Instance();
+    auto* w = nm->FindOrBuildMaterial("G4_W");
+    auto* c = nm->FindOrBuildMaterial("G4_C");
+    auto* h = nm->FindOrBuildMaterial("G4_H");
+    auto* o = nm->FindOrBuildMaterial("G4_O");
+
+    auto* pla = new G4Material(
+        "polylactic acid", 1.25 * g/cm3, 3,
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+    // PLA is a mix of C, H, O
+    pla->AddMaterial(c, 0.5);
+    pla->AddMaterial(h, 0.06);
+    pla->AddMaterial(o, 0.44);
+
+    auto* tungstenImbued = new G4Material(
+        "tungsten-pla-filament", 7.8 * g/cm3, 2,
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+
+    // 8% PLA, 92% W, by mass
+    tungstenImbued->AddMaterial(pla, 0.08);
+    tungstenImbued->AddMaterial(w, 0.92);
+}
+
+void makeKovar() {
+    if (G4Material::GetMaterial("kovar"))
+        return;
+
+    auto* nm = G4NistManager::Instance();
+    auto* co = nm->FindOrBuildMaterial("G4_Co");
+    auto* ni = nm->FindOrBuildMaterial("G4_Ni");
+    auto* fe = nm->FindOrBuildMaterial("G4_Fe");
+
+    auto* kovar = new G4Material(
+        "kovar", 8.35 * g/cm3, 3,
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+    kovar->AddMaterial(co, 0.17);
+    kovar->AddMaterial(ni, 0.29);
+    kovar->AddMaterial(fe, 0.54);
+}
+
+void makeTecCeramic() {
+    if (G4Material::GetMaterial("tec_ceramic"))
+        return;
+
+    auto* nm = G4NistManager::Instance();
+    auto* al = nm->FindOrBuildMaterial("G4_Al");
+    auto* n = nm->FindOrBuildMaterial("G4_Al");
+    auto* cu = nm->FindOrBuildMaterial("G4_Cu");
+
+    auto* alN = new G4Material(
+        "aluminum nitride", 3.26 * g/cm3, 2,
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+    alN->AddMaterial(al, 0.66);
+    alN->AddMaterial(n, 0.34);
+
+    auto* ceramic = new G4Material(
+        "tec_ceramic", 4 * g/cm3, 2,
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+    ceramic->AddMaterial(alN, 0.95);
+    ceramic->AddMaterial(cu, 0.05);
+}
+
+void makeSddSubstrate() {
+    if (G4Material::GetMaterial("sdd_substrate"))
+        return;
+
+    auto* nm = G4NistManager::Instance();
+    auto* alumina = nm->FindOrBuildMaterial("G4_ALUMINUM_OXIDE");
+    auto* au = nm->FindOrBuildMaterial("G4_Au");
+
+    auto* substrate = new G4Material(
+        "sdd_substrate", 4 * g/cm3, 2,
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+    substrate->AddMaterial(alumina, 0.98);
+    substrate->AddMaterial(au, 0.02);
+}
+
+
+void makeHalfSilicon() {
+    if (G4Material::GetMaterial("half_silicon"))
+        return;
+
+    auto* nm = G4NistManager::Instance();
+    auto* si = nm->FindOrBuildMaterial("G4_Si");
+
+    auto* halfSi = new G4Material(
+        // Silicon with half the density, for TEC
+        // stages
+        "half_silicon", 1.165 * g/cm3, 1,
+        kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
+    halfSi->AddMaterial(si, 1.0);
+}
+
+} // namespace Materials

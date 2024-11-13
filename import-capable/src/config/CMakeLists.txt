@@ -1,9 +1,9 @@
-target_sources(basic-optics
+target_sources(cadmesh-wrapper
     PUBLIC
     configs.cc
 )
 
-target_include_directories(basic-optics
+target_include_directories(cadmesh-wrapper
     PUBLIC
     .
 )

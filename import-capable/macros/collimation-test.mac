@@ -1,0 +1,863 @@
+
+/control/execute macros/collimator.mac
+
+# Flat energy distribution
+/gps/ene/type Lin
+/gps/ene/min 10 keV
+/gps/ene/max 150 keV
+
+# Zero slope, constant intercept --> flat across E
+/gps/ene/gradient 0
+/gps/ene/intercept 1
+
+# Turn off visualization if in interactive mode
+# /vis/disable
+
+
+/gps/direction 0.00000 0 -1.00000
+/run/beamOn 100000
+
+/gps/direction 0.00436 0 -0.99999
+/run/beamOn 100000
+
+/gps/direction 0.00873 0 -0.99996
+/run/beamOn 100000
+
+/gps/direction 0.01309 0 -0.99991
+/run/beamOn 100000
+
+/gps/direction 0.01745 0 -0.99985
+/run/beamOn 100000
+
+/gps/direction 0.02181 0 -0.99976
+/run/beamOn 100000
+
+/gps/direction 0.02618 0 -0.99966
+/run/beamOn 100000
+
+/gps/direction 0.03054 0 -0.99953
+/run/beamOn 100000
+
+/gps/direction 0.03490 0 -0.99939
+/run/beamOn 100000
+
+/gps/direction 0.03926 0 -0.99923
+/run/beamOn 100000
+
+/gps/direction 0.04362 0 -0.99905
+/run/beamOn 100000
+
+/gps/direction 0.04798 0 -0.99885
+/run/beamOn 100000
+
+/gps/direction 0.05234 0 -0.99863
+/run/beamOn 100000
+
+/gps/direction 0.05669 0 -0.99839
+/run/beamOn 100000
+
+/gps/direction 0.06105 0 -0.99813
+/run/beamOn 100000
+
+/gps/direction 0.06540 0 -0.99786
+/run/beamOn 100000
+
+/gps/direction 0.06976 0 -0.99756
+/run/beamOn 100000
+
+/gps/direction 0.07411 0 -0.99725
+/run/beamOn 100000
+
+/gps/direction 0.07846 0 -0.99692
+/run/beamOn 100000
+
+/gps/direction 0.08281 0 -0.99657
+/run/beamOn 100000
+
+/gps/direction 0.08716 0 -0.99619
+/run/beamOn 100000
+
+/gps/direction 0.09150 0 -0.99580
+/run/beamOn 100000
+
+/gps/direction 0.09585 0 -0.99540
+/run/beamOn 100000
+
+/gps/direction 0.10019 0 -0.99497
+/run/beamOn 100000
+
+/gps/direction 0.10453 0 -0.99452
+/run/beamOn 100000
+
+/gps/direction 0.10887 0 -0.99406
+/run/beamOn 100000
+
+/gps/direction 0.11320 0 -0.99357
+/run/beamOn 100000
+
+/gps/direction 0.11754 0 -0.99307
+/run/beamOn 100000
+
+/gps/direction 0.12187 0 -0.99255
+/run/beamOn 100000
+
+/gps/direction 0.12620 0 -0.99200
+/run/beamOn 100000
+
+/gps/direction 0.13053 0 -0.99144
+/run/beamOn 100000
+
+/gps/direction 0.13485 0 -0.99087
+/run/beamOn 100000
+
+/gps/direction 0.13917 0 -0.99027
+/run/beamOn 100000
+
+/gps/direction 0.14349 0 -0.98965
+/run/beamOn 100000
+
+/gps/direction 0.14781 0 -0.98902
+/run/beamOn 100000
+
+/gps/direction 0.15212 0 -0.98836
+/run/beamOn 100000
+
+/gps/direction 0.15643 0 -0.98769
+/run/beamOn 100000
+
+/gps/direction 0.16074 0 -0.98700
+/run/beamOn 100000
+
+/gps/direction 0.16505 0 -0.98629
+/run/beamOn 100000
+
+/gps/direction 0.16935 0 -0.98556
+/run/beamOn 100000
+
+/gps/direction 0.17365 0 -0.98481
+/run/beamOn 100000
+
+/gps/direction 0.17794 0 -0.98404
+/run/beamOn 100000
+
+/gps/direction 0.18224 0 -0.98325
+/run/beamOn 100000
+
+/gps/direction 0.18652 0 -0.98245
+/run/beamOn 100000
+
+/gps/direction 0.19081 0 -0.98163
+/run/beamOn 100000
+
+/gps/direction 0.19509 0 -0.98079
+/run/beamOn 100000
+
+/gps/direction 0.19937 0 -0.97992
+/run/beamOn 100000
+
+/gps/direction 0.20364 0 -0.97905
+/run/beamOn 100000
+
+/gps/direction 0.20791 0 -0.97815
+/run/beamOn 100000
+
+/gps/direction 0.21218 0 -0.97723
+/run/beamOn 100000
+
+/gps/direction 0.21644 0 -0.97630
+/run/beamOn 100000
+
+/gps/direction 0.22070 0 -0.97534
+/run/beamOn 100000
+
+/gps/direction 0.22495 0 -0.97437
+/run/beamOn 100000
+
+/gps/direction 0.22920 0 -0.97338
+/run/beamOn 100000
+
+/gps/direction 0.23345 0 -0.97237
+/run/beamOn 100000
+
+/gps/direction 0.23769 0 -0.97134
+/run/beamOn 100000
+
+/gps/direction 0.24192 0 -0.97030
+/run/beamOn 100000
+
+/gps/direction 0.24615 0 -0.96923
+/run/beamOn 100000
+
+/gps/direction 0.25038 0 -0.96815
+/run/beamOn 100000
+
+/gps/direction 0.25460 0 -0.96705
+/run/beamOn 100000
+
+/gps/direction 0.25882 0 -0.96593
+/run/beamOn 100000
+
+/gps/direction 0.26303 0 -0.96479
+/run/beamOn 100000
+
+/gps/direction 0.26724 0 -0.96363
+/run/beamOn 100000
+
+/gps/direction 0.27144 0 -0.96246
+/run/beamOn 100000
+
+/gps/direction 0.27564 0 -0.96126
+/run/beamOn 100000
+
+/gps/direction 0.27983 0 -0.96005
+/run/beamOn 100000
+
+/gps/direction 0.28402 0 -0.95882
+/run/beamOn 100000
+
+/gps/direction 0.28820 0 -0.95757
+/run/beamOn 100000
+
+/gps/direction 0.29237 0 -0.95630
+/run/beamOn 100000
+
+/gps/direction 0.29654 0 -0.95502
+/run/beamOn 100000
+
+/gps/direction 0.30071 0 -0.95372
+/run/beamOn 100000
+
+/gps/direction 0.30486 0 -0.95240
+/run/beamOn 100000
+
+/gps/direction 0.30902 0 -0.95106
+/run/beamOn 100000
+
+/gps/direction 0.31316 0 -0.94970
+/run/beamOn 100000
+
+/gps/direction 0.31730 0 -0.94832
+/run/beamOn 100000
+
+/gps/direction 0.32144 0 -0.94693
+/run/beamOn 100000
+
+/gps/direction 0.32557 0 -0.94552
+/run/beamOn 100000
+
+/gps/direction 0.32969 0 -0.94409
+/run/beamOn 100000
+
+/gps/direction 0.33381 0 -0.94264
+/run/beamOn 100000
+
+/gps/direction 0.33792 0 -0.94118
+/run/beamOn 100000
+
+/gps/direction 0.34202 0 -0.93969
+/run/beamOn 100000
+
+/gps/direction 0.34612 0 -0.93819
+/run/beamOn 100000
+
+/gps/direction 0.35021 0 -0.93667
+/run/beamOn 100000
+
+/gps/direction 0.35429 0 -0.93514
+/run/beamOn 100000
+
+/gps/direction 0.35837 0 -0.93358
+/run/beamOn 100000
+
+/gps/direction 0.36244 0 -0.93201
+/run/beamOn 100000
+
+/gps/direction 0.36650 0 -0.93042
+/run/beamOn 100000
+
+/gps/direction 0.37056 0 -0.92881
+/run/beamOn 100000
+
+/gps/direction 0.37461 0 -0.92718
+/run/beamOn 100000
+
+/gps/direction 0.37865 0 -0.92554
+/run/beamOn 100000
+
+/gps/direction 0.38268 0 -0.92388
+/run/beamOn 100000
+
+/gps/direction 0.38671 0 -0.92220
+/run/beamOn 100000
+
+/gps/direction 0.39073 0 -0.92050
+/run/beamOn 100000
+
+/gps/direction 0.39474 0 -0.91879
+/run/beamOn 100000
+
+/gps/direction 0.39875 0 -0.91706
+/run/beamOn 100000
+
+/gps/direction 0.40275 0 -0.91531
+/run/beamOn 100000
+
+/gps/direction 0.40674 0 -0.91355
+/run/beamOn 100000
+
+/gps/direction 0.41072 0 -0.91176
+/run/beamOn 100000
+
+/gps/direction 0.41469 0 -0.90996
+/run/beamOn 100000
+
+/gps/direction 0.41866 0 -0.90814
+/run/beamOn 100000
+
+/gps/direction 0.42262 0 -0.90631
+/run/beamOn 100000
+
+/gps/direction 0.42657 0 -0.90446
+/run/beamOn 100000
+
+/gps/direction 0.43051 0 -0.90259
+/run/beamOn 100000
+
+/gps/direction 0.43445 0 -0.90070
+/run/beamOn 100000
+
+/gps/direction 0.43837 0 -0.89879
+/run/beamOn 100000
+
+/gps/direction 0.44229 0 -0.89687
+/run/beamOn 100000
+
+/gps/direction 0.44620 0 -0.89493
+/run/beamOn 100000
+
+/gps/direction 0.45010 0 -0.89298
+/run/beamOn 100000
+
+/gps/direction 0.45399 0 -0.89101
+/run/beamOn 100000
+
+/gps/direction 0.45787 0 -0.88902
+/run/beamOn 100000
+
+/gps/direction 0.46175 0 -0.88701
+/run/beamOn 100000
+
+/gps/direction 0.46561 0 -0.88499
+/run/beamOn 100000
+
+/gps/direction 0.46947 0 -0.88295
+/run/beamOn 100000
+
+/gps/direction 0.47332 0 -0.88089
+/run/beamOn 100000
+
+/gps/direction 0.47716 0 -0.87882
+/run/beamOn 100000
+
+/gps/direction 0.48099 0 -0.87673
+/run/beamOn 100000
+
+/gps/direction 0.48481 0 -0.87462
+/run/beamOn 100000
+
+/gps/direction 0.48862 0 -0.87250
+/run/beamOn 100000
+
+/gps/direction 0.49242 0 -0.87036
+/run/beamOn 100000
+
+/gps/direction 0.49622 0 -0.86820
+/run/beamOn 100000
+
+/gps/direction 0.50000 0 -0.86603
+/run/beamOn 100000
+
+/gps/direction 0.50377 0 -0.86384
+/run/beamOn 100000
+
+/gps/direction 0.50754 0 -0.86163
+/run/beamOn 100000
+
+/gps/direction 0.51129 0 -0.85941
+/run/beamOn 100000
+
+/gps/direction 0.51504 0 -0.85717
+/run/beamOn 100000
+
+/gps/direction 0.51877 0 -0.85491
+/run/beamOn 100000
+
+/gps/direction 0.52250 0 -0.85264
+/run/beamOn 100000
+
+/gps/direction 0.52621 0 -0.85035
+/run/beamOn 100000
+
+/gps/direction 0.52992 0 -0.84805
+/run/beamOn 100000
+
+/gps/direction 0.53361 0 -0.84573
+/run/beamOn 100000
+
+/gps/direction 0.53730 0 -0.84339
+/run/beamOn 100000
+
+/gps/direction 0.54097 0 -0.84104
+/run/beamOn 100000
+
+/gps/direction 0.54464 0 -0.83867
+/run/beamOn 100000
+
+/gps/direction 0.54829 0 -0.83629
+/run/beamOn 100000
+
+/gps/direction 0.55194 0 -0.83389
+/run/beamOn 100000
+
+/gps/direction 0.55557 0 -0.83147
+/run/beamOn 100000
+
+/gps/direction 0.55919 0 -0.82904
+/run/beamOn 100000
+
+/gps/direction 0.56280 0 -0.82659
+/run/beamOn 100000
+
+/gps/direction 0.56641 0 -0.82413
+/run/beamOn 100000
+
+/gps/direction 0.57000 0 -0.82165
+/run/beamOn 100000
+
+/gps/direction 0.57358 0 -0.81915
+/run/beamOn 100000
+
+/gps/direction 0.57715 0 -0.81664
+/run/beamOn 100000
+
+/gps/direction 0.58070 0 -0.81412
+/run/beamOn 100000
+
+/gps/direction 0.58425 0 -0.81157
+/run/beamOn 100000
+
+/gps/direction 0.58779 0 -0.80902
+/run/beamOn 100000
+
+/gps/direction 0.59131 0 -0.80644
+/run/beamOn 100000
+
+/gps/direction 0.59482 0 -0.80386
+/run/beamOn 100000
+
+/gps/direction 0.59832 0 -0.80125
+/run/beamOn 100000
+
+/gps/direction 0.60182 0 -0.79864
+/run/beamOn 100000
+
+/gps/direction 0.60529 0 -0.79600
+/run/beamOn 100000
+
+/gps/direction 0.60876 0 -0.79335
+/run/beamOn 100000
+
+/gps/direction 0.61222 0 -0.79069
+/run/beamOn 100000
+
+/gps/direction 0.61566 0 -0.78801
+/run/beamOn 100000
+
+/gps/direction 0.61909 0 -0.78532
+/run/beamOn 100000
+
+/gps/direction 0.62251 0 -0.78261
+/run/beamOn 100000
+
+/gps/direction 0.62592 0 -0.77988
+/run/beamOn 100000
+
+/gps/direction 0.62932 0 -0.77715
+/run/beamOn 100000
+
+/gps/direction 0.63271 0 -0.77439
+/run/beamOn 100000
+
+/gps/direction 0.63608 0 -0.77162
+/run/beamOn 100000
+
+/gps/direction 0.63944 0 -0.76884
+/run/beamOn 100000
+
+/gps/direction 0.64279 0 -0.76604
+/run/beamOn 100000
+
+/gps/direction 0.64612 0 -0.76323
+/run/beamOn 100000
+
+/gps/direction 0.64945 0 -0.76041
+/run/beamOn 100000
+
+/gps/direction 0.65276 0 -0.75756
+/run/beamOn 100000
+
+/gps/direction 0.65606 0 -0.75471
+/run/beamOn 100000
+
+/gps/direction 0.65935 0 -0.75184
+/run/beamOn 100000
+
+/gps/direction 0.66262 0 -0.74896
+/run/beamOn 100000
+
+/gps/direction 0.66588 0 -0.74606
+/run/beamOn 100000
+
+/gps/direction 0.66913 0 -0.74314
+/run/beamOn 100000
+
+/gps/direction 0.67237 0 -0.74022
+/run/beamOn 100000
+
+/gps/direction 0.67559 0 -0.73728
+/run/beamOn 100000
+
+/gps/direction 0.67880 0 -0.73432
+/run/beamOn 100000
+
+/gps/direction 0.68200 0 -0.73135
+/run/beamOn 100000
+
+/gps/direction 0.68518 0 -0.72837
+/run/beamOn 100000
+
+/gps/direction 0.68835 0 -0.72537
+/run/beamOn 100000
+
+/gps/direction 0.69151 0 -0.72236
+/run/beamOn 100000
+
+/gps/direction 0.69466 0 -0.71934
+/run/beamOn 100000
+
+/gps/direction 0.69779 0 -0.71630
+/run/beamOn 100000
+
+/gps/direction 0.70091 0 -0.71325
+/run/beamOn 100000
+
+/gps/direction 0.70401 0 -0.71019
+/run/beamOn 100000
+
+/gps/direction 0.70711 0 -0.70711
+/run/beamOn 100000
+
+/gps/direction 0.71019 0 -0.70401
+/run/beamOn 100000
+
+/gps/direction 0.71325 0 -0.70091
+/run/beamOn 100000
+
+/gps/direction 0.71630 0 -0.69779
+/run/beamOn 100000
+
+/gps/direction 0.71934 0 -0.69466
+/run/beamOn 100000
+
+/gps/direction 0.72236 0 -0.69151
+/run/beamOn 100000
+
+/gps/direction 0.72537 0 -0.68835
+/run/beamOn 100000
+
+/gps/direction 0.72837 0 -0.68518
+/run/beamOn 100000
+
+/gps/direction 0.73135 0 -0.68200
+/run/beamOn 100000
+
+/gps/direction 0.73432 0 -0.67880
+/run/beamOn 100000
+
+/gps/direction 0.73728 0 -0.67559
+/run/beamOn 100000
+
+/gps/direction 0.74022 0 -0.67237
+/run/beamOn 100000
+
+/gps/direction 0.74314 0 -0.66913
+/run/beamOn 100000
+
+/gps/direction 0.74606 0 -0.66588
+/run/beamOn 100000
+
+/gps/direction 0.74896 0 -0.66262
+/run/beamOn 100000
+
+/gps/direction 0.75184 0 -0.65935
+/run/beamOn 100000
+
+/gps/direction 0.75471 0 -0.65606
+/run/beamOn 100000
+
+/gps/direction 0.75756 0 -0.65276
+/run/beamOn 100000
+
+/gps/direction 0.76041 0 -0.64945
+/run/beamOn 100000
+
+/gps/direction 0.76323 0 -0.64612
+/run/beamOn 100000
+
+/gps/direction 0.76604 0 -0.64279
+/run/beamOn 100000
+
+/gps/direction 0.76884 0 -0.63944
+/run/beamOn 100000
+
+/gps/direction 0.77162 0 -0.63608
+/run/beamOn 100000
+
+/gps/direction 0.77439 0 -0.63271
+/run/beamOn 100000
+
+/gps/direction 0.77715 0 -0.62932
+/run/beamOn 100000
+
+/gps/direction 0.77988 0 -0.62592
+/run/beamOn 100000
+
+/gps/direction 0.78261 0 -0.62251
+/run/beamOn 100000
+
+/gps/direction 0.78532 0 -0.61909
+/run/beamOn 100000
+
+/gps/direction 0.78801 0 -0.61566
+/run/beamOn 100000
+
+/gps/direction 0.79069 0 -0.61222
+/run/beamOn 100000
+
+/gps/direction 0.79335 0 -0.60876
+/run/beamOn 100000
+
+/gps/direction 0.79600 0 -0.60529
+/run/beamOn 100000
+
+/gps/direction 0.79864 0 -0.60182
+/run/beamOn 100000
+
+/gps/direction 0.80125 0 -0.59832
+/run/beamOn 100000
+
+/gps/direction 0.80386 0 -0.59482
+/run/beamOn 100000
+
+/gps/direction 0.80644 0 -0.59131
+/run/beamOn 100000
+
+/gps/direction 0.80902 0 -0.58779
+/run/beamOn 100000
+
+/gps/direction 0.81157 0 -0.58425
+/run/beamOn 100000
+
+/gps/direction 0.81412 0 -0.58070
+/run/beamOn 100000
+
+/gps/direction 0.81664 0 -0.57715
+/run/beamOn 100000
+
+/gps/direction 0.81915 0 -0.57358
+/run/beamOn 100000
+
+/gps/direction 0.82165 0 -0.57000
+/run/beamOn 100000
+
+/gps/direction 0.82413 0 -0.56641
+/run/beamOn 100000
+
+/gps/direction 0.82659 0 -0.56280
+/run/beamOn 100000
+
+/gps/direction 0.82904 0 -0.55919
+/run/beamOn 100000
+
+/gps/direction 0.83147 0 -0.55557
+/run/beamOn 100000
+
+/gps/direction 0.83389 0 -0.55194
+/run/beamOn 100000
+
+/gps/direction 0.83629 0 -0.54829
+/run/beamOn 100000
+
+/gps/direction 0.83867 0 -0.54464
+/run/beamOn 100000
+
+/gps/direction 0.84104 0 -0.54097
+/run/beamOn 100000
+
+/gps/direction 0.84339 0 -0.53730
+/run/beamOn 100000
+
+/gps/direction 0.84573 0 -0.53361
+/run/beamOn 100000
+
+/gps/direction 0.84805 0 -0.52992
+/run/beamOn 100000
+
+/gps/direction 0.85035 0 -0.52621
+/run/beamOn 100000
+
+/gps/direction 0.85264 0 -0.52250
+/run/beamOn 100000
+
+/gps/direction 0.85491 0 -0.51877
+/run/beamOn 100000
+
+/gps/direction 0.85717 0 -0.51504
+/run/beamOn 100000
+
+/gps/direction 0.85941 0 -0.51129
+/run/beamOn 100000
+
+/gps/direction 0.86163 0 -0.50754
+/run/beamOn 100000
+
+/gps/direction 0.86384 0 -0.50377
+/run/beamOn 100000
+
+/gps/direction 0.86603 0 -0.50000
+/run/beamOn 100000
+
+/gps/direction 0.86820 0 -0.49622
+/run/beamOn 100000
+
+/gps/direction 0.87036 0 -0.49242
+/run/beamOn 100000
+
+/gps/direction 0.87250 0 -0.48862
+/run/beamOn 100000
+
+/gps/direction 0.87462 0 -0.48481
+/run/beamOn 100000
+
+/gps/direction 0.87673 0 -0.48099
+/run/beamOn 100000
+
+/gps/direction 0.87882 0 -0.47716
+/run/beamOn 100000
+
+/gps/direction 0.88089 0 -0.47332
+/run/beamOn 100000
+
+/gps/direction 0.88295 0 -0.46947
+/run/beamOn 100000
+
+/gps/direction 0.88499 0 -0.46561
+/run/beamOn 100000
+
+/gps/direction 0.88701 0 -0.46175
+/run/beamOn 100000
+
+/gps/direction 0.88902 0 -0.45787
+/run/beamOn 100000
+
+/gps/direction 0.89101 0 -0.45399
+/run/beamOn 100000
+
+/gps/direction 0.89298 0 -0.45010
+/run/beamOn 100000
+
+/gps/direction 0.89493 0 -0.44620
+/run/beamOn 100000
+
+/gps/direction 0.89687 0 -0.44229
+/run/beamOn 100000
+
+/gps/direction 0.89879 0 -0.43837
+/run/beamOn 100000
+
+/gps/direction 0.90070 0 -0.43445
+/run/beamOn 100000
+
+/gps/direction 0.90259 0 -0.43051
+/run/beamOn 100000
+
+/gps/direction 0.90446 0 -0.42657
+/run/beamOn 100000
+
+/gps/direction 0.90631 0 -0.42262
+/run/beamOn 100000
+
+/gps/direction 0.90814 0 -0.41866
+/run/beamOn 100000
+
+/gps/direction 0.90996 0 -0.41469
+/run/beamOn 100000
+
+/gps/direction 0.91176 0 -0.41072
+/run/beamOn 100000
+
+/gps/direction 0.91355 0 -0.40674
+/run/beamOn 100000
+
+/gps/direction 0.91531 0 -0.40275
+/run/beamOn 100000
+
+/gps/direction 0.91706 0 -0.39875
+/run/beamOn 100000
+
+/gps/direction 0.91879 0 -0.39474
+/run/beamOn 100000
+
+/gps/direction 0.92050 0 -0.39073
+/run/beamOn 100000
+
+/gps/direction 0.92220 0 -0.38671
+/run/beamOn 100000
+
+/gps/direction 0.92388 0 -0.38268
+/run/beamOn 100000
+
+/gps/direction 0.92554 0 -0.37865
+/run/beamOn 100000
+
+/gps/direction 0.92718 0 -0.37461
+/run/beamOn 100000
+
+/gps/direction 0.92881 0 -0.37056
+/run/beamOn 100000
+
+/gps/direction 0.93042 0 -0.36650
+/run/beamOn 100000
+
+/gps/direction 0.93201 0 -0.36244
+/run/beamOn 100000
+
+/gps/direction 0.93358 0 -0.35837
+/run/beamOn 100000
+
+/gps/direction 0.93514 0 -0.35429
+/run/beamOn 100000
+
+/gps/direction 0.93667 0 -0.35021
+/run/beamOn 100000
+
+/gps/direction 0.93819 0 -0.34612
+/run/beamOn 100000
+
+/gps/direction 0.93969 0 -0.34202
+/run/beamOn 100000
+
+# angle info (t0, t1 inclusive, dt):
+# 0 70 0.25
+# energy info (min, max):
+# 10 150

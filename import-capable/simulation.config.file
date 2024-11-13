@@ -1,8 +1,7 @@
 # prefix the folders saved
-save-prefix string collimator-angular-dist
+save-prefix string noprefix
 
 # enable-scintillation 0
-scintillator-material string lyso
 save-each-cryst-hit-energy bool 0
 save-scintillator-positions bool 0
 save-sipm-positions bool 0
