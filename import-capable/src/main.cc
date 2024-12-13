@@ -39,6 +39,17 @@ int main(int argc, char* argv[]) {
     auto* runManager =
         G4RunManagerFactory::CreateRunManager(G4RunManagerType::Default);
 
+
+    std::cout << "num cores: " << G4Threading::G4GetNumberOfCores() << std::endl;
+    // If the user specifies the number of cores to use,
+    // tell the RunManager to use that many
+    auto numCores = std::getenv("GEANT4_NUM_CORES");
+    runManager->SetNumberOfThreads(
+        (numCores == nullptr)?
+            G4Threading::G4GetNumberOfCores() :
+            std::atoi(numCores)
+    );
+
     G4PhysListFactory plf;
     auto* pl = plf.GetReferencePhysList("FTFP_BERT");
     pl->RegisterPhysics(new G4OpticalPhysics);

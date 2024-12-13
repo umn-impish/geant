@@ -2,3 +2,4 @@
 __pycache__
 .vscode
 analysis
+macros/response_matrix/srm.mac
