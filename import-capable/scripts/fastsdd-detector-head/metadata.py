@@ -41,6 +41,7 @@ output |= generate_meta('substrate.stl', 'sdd_substrate')
 
 # the detector is (stupidly) named "silicon"
 output |= generate_meta('silicon.stl', 'G4_Si', type_='scintillator')
+output |= generate_meta('silicon_edge.stl', 'G4_Si', type_='passive')
 
 # Custom material: mostly AlN, some copper
 output |= generate_meta('first_ceramic.stl', 'tec_ceramic')

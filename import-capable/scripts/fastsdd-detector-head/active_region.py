@@ -36,10 +36,19 @@ def make_active_region(translate: tuple[float]) -> dict[str, cq.Workplane]:
 
     si_side = 8.4
     si_thk = 1
-    shapes['silicon'] = (
+    shapes['silicon_edge'] = (
         cq.Workplane("XY")
         .box(si_side, si_side, si_thk)
         .translate((dx, dy, si_center := si_thk/2 + substrate_thk/2 + dz))
+        .faces("<Z")
+        # The actual active volume has this radius
+        .circle(radius=(si_radius := np.sqrt(25 / np.pi)))
+        .cutThruAll()
+    )
+    shapes['silicon'] = (
+        cq.Workplane("XY")
+        .cylinder(height=si_thk, radius=si_radius)
+        .translate((dx, dy, si_center))
     )
 
     # The collimator is made up of W, Cr, Ti, Al
