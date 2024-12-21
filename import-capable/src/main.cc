@@ -51,8 +51,7 @@ int main(int argc, char* argv[]) {
     );
 
     G4PhysListFactory plf;
-    auto* pl = plf.GetReferencePhysList("FTFP_BERT");
-    pl->RegisterPhysics(new G4OpticalPhysics);
+    auto* pl = plf.GetReferencePhysList("QGSP_BIC_HP_EMZ");
     pl->RegisterPhysics(new G4OpticalPhysics);
     pl->RegisterPhysics(new G4RadioactiveDecayPhysics);
     runManager->SetUserInitialization(pl);

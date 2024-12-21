@@ -165,16 +165,21 @@ void DetectorConstruction::importMesh(
 }
 
 void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const json &met) {
-    if (met["type"].get<std::string>() == "optical_detector") {
+
+    auto type = met["type"].get<std::string>();
+    if (type == "optical_detector") {
         auto surf = siOpticalSurface();
         (void) new G4LogicalSkinSurface("si_det_skin", lv, surf);
         siLogVols.push_back(lv);
     }
-    else if (met["type"].get<std::string>() == "specular_reflector") {
+    else if (type == "specular_reflector") {
         attachSpecularOpticalSurface(lv);
     }
-    else if (met["type"].get<std::string>() == "scintillator") {
+    else if (type == "scintillator") {
         crLogVols.push_back(lv);
+    }
+    else {
+        throw std::runtime_error{"Unknown geometry type: " + type};
     }
     /*
      In terms of optics, nothing else needs to happen here.

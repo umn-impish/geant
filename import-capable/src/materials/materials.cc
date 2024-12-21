@@ -398,6 +398,10 @@ void makeEsr()
     esr->AddMaterial(nm->FindOrBuildMaterial("G4_C"), 0.65);
     esr->AddMaterial(nm->FindOrBuildMaterial("G4_H"), 0.11);
     esr->AddMaterial(nm->FindOrBuildMaterial("G4_O"), 0.22);
+
+    auto* pt = new G4MaterialPropertiesTable;
+    pt->AddProperty(kREFR_IDX, {0.1*eV, 10*eV}, {1., 1.}, useSpline);
+    esr->SetMaterialPropertiesTable(pt);
 }
 
 void makePdms()
