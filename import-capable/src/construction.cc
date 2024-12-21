@@ -178,7 +178,7 @@ void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const json &met)
     else if (type == "scintillator") {
         crLogVols.push_back(lv);
     }
-    else {
+    else if (type != "passive") {
         throw std::runtime_error{"Unknown geometry type: " + type};
     }
     /*
