@@ -77,7 +77,7 @@ void DetectorConstruction::importSolids() {
         auto fn = mdat["file"].get<std::string>();
         if (fn.find(".stl") != std::string::npos) {
             auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
-            importMesh(fn, mesh, mdat);
+            importMesh(key_ + fn, mesh, mdat);
         }
         else if (fn.find(".obj") != std::string::npos) {
             // Assume the .obj file describes the 
@@ -89,7 +89,7 @@ void DetectorConstruction::importSolids() {
             for (auto s : solids) {
                 auto name = s->GetName();
                 auto cur_meta = mdat[name];
-                importMesh(name, mesh, cur_meta);
+                importMesh(key_ + name, mesh, cur_meta);
             }
         }
         else {
