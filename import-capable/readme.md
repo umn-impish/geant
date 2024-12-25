@@ -5,15 +5,15 @@
 Here we use the [CADMesh](https://github.com/christopherpoole/CADMesh/tree/master)
     library to import arbitrary 3D geometries into Geant4,
     with a focus on optical ray tracing.
+
 We're doing this because [pvtrace](https://github.com/danieljfarrell/pvtrace/tree/master) is painfully slow.
 
-Metadata is written in JSON and passed to `stdin` of the Geant4 executible using,
-    e.g., the [`cat`](https://www.man7.org/linux/man-pages/man1/cat.1.html) utility:
+Metadata is written in JSON and passed to the Geant4 executable along with an optional macro
 ```bash
-cat geometry_metadata.json | ./basic-optics
+./cadmesh-wrapper metadata.json path/to/optional/macro/file.mac
 ```
 
-The JSON is parsed using the [`json`](https://github.com/nlohmann/json) library listed below into C-style structs.
+The JSON is parsed using the [`json`](https://github.com/nlohmann/json) library listed below into nice objects.
 
 Some configuration data is also present in `simulation.config.file`.
 This may be updated as needed.
@@ -21,35 +21,51 @@ See docs at the repository root for more info.
 
 The current format of the JSON descriptor for each geometry element is as follows (Python notation):
 ```python
-object_descriptor = {
-    # File name relative to the current working directory
-    "file": "filename.stl",
+# Example Python script to write out JSON for you
 
-    # material can be any defined one in Geant's predefined library,
-    # https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
-    # or it can be one which is defined in src/materials
-    "material": "mat",
+import json
 
-    # the type of the thing to be parsed in.
-    # currently there are only some special meanings:
-    # 1. specular_reflector: makes the item a perfect specular reflector
-    #    (inside and out)
-    # 2. 
-    "type": "type of object",
+meta = {
+    "thing1": {
+        # File name relative to the current working directory
+        "file": "filename.stl",
 
-    # How much to scale the units:
-    # default Geant units are in mm, so
-    # if your STL file is in micron, your scale
-    # should be 1000.
-    "scale": 1.,
+        # material can be any defined one in Geant's predefined library,
+        # https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Appendix/materialNames.html
+        # or it can be one which is defined in src/materials
+        "material": "mat",
 
-    # How much to translate the object along (x, y, z) in mm
-    "translation": [0, 0, 0],
+        # the type of the thing to be parsed in.
+        # currently there are only some special meanings:
+        # 1. specular_reflector: makes the item a perfect specular reflector
+        #    (inside and out)
+        # 2. scintillator: detects X-rays
+        # 3. optical_detector: detects opticals
+        # 4. passive: interacts with particles but is not a detector
+        "type": "type of object",
 
-    # Euler rotation angles for the object,
-    # if it should be rotated at all
-    "euler_rotation": [0, 0, 0]
+        # How much to scale the units:
+        # default Geant units are in mm, so
+        # if your STL file is in micron, your scale
+        # should be 1000.
+        "scale": 1.,
+
+        # How much to translate the object along (x, y, z) in mm
+        "translation": [0, 0, 0],
+
+        # Euler rotation angles for the object,
+        # if it should be rotated at all
+        "euler_rotation": [0, 0, 0]
+    },
+
+    # Write more metadata as needed
+    "thing2": {...},
+    "thing3": {...},
 }
+
+# If in a .py script, write out the metadata to a file
+with open('meta.json', 'w') as f:
+    f.write(json.dumps(meta))
 ```
 
 ## "Quickstart" example
@@ -69,11 +85,19 @@ cd ../scripts
 python rectangular.py
 
 cd ../build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -jN # N is number of cores to use
 ln -s ../scripts/rectangular .
-cat rectangular/rect_meta.json | ./basic-optics
+./cadmesh-wrapper rectangular/rect_meta.json
 ```
 
-You should get a gui to pop up and you can run stuff interactively.
+You should get a gui to pop up and you can run stuff interactively, e.g.,
+```
+/control/execute optical-diagnose.mac
+/run/beamOn 100
+```
+should launch some opticals in the crystal,
+    and hits on the SiPM block.
 
 ## Further geometries
 You may define further arbitrary geometries by supplying the proper
@@ -98,13 +122,18 @@ If you want to save more data,
     # (first, download the source and cd into the G4 directory)
     mkdir build
     cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HOME/g4" -DGEANT4_INSTALL_DATA=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_USE_QT=ON -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
+    cmake -DCMAKE_INSTALL_PREFIX="$HOME/g4_install" -DGEANT4_INSTALL_DATA=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_USE_QT=ON -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
     make -j4
     sudo make install
     ```
-- [CADMesh](https://github.com/christopherpoole/CADMesh/tree/master)
+- [CADMesh](https://github.com/christopherpoole/CADMesh/tree/master) and `tetgen`
     - Can be installed like most c++ libraries:
     ```bash
+    # Prereq: tetgen
+    # This is the current version in Dec 2024; might change
+    sudo apt update && sudo apt install libtet1.5-dev
+
+    # Actual installation
     git clone https://github.com/christopherpoole/CADMesh.git
     cd CADMesh
     mkdir build
@@ -126,7 +155,8 @@ If you want to save more data,
     ```
 - (if you want to run the example 3D shapes script) [CadQuery](https://github.com/CadQuery/cadquery)
     ```bash
+    # Make a venv (or not) in Python 3.10, then
     pip install --upgrade pip
-    pip instal cadquery
+    pip instal cadquery numpy==1.24.0
     ```
 
