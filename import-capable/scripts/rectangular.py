@@ -102,7 +102,7 @@ meta = {
     'pad': generate_meta(
         fn=save_to('pad.stl'),
         mat='pdms',
-        type_='optically_active',
+        type_='passive',
         trans=(0, 0, (pad_loc := -crystal_dims[2]/2 - sipms.optical_pad_thickness/2))
     ),
     'readout': generate_meta(
