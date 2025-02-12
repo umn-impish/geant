@@ -18,6 +18,7 @@
 static constexpr bool checkOverlaps = true;
 static G4OpticalSurface* siOpticalSurface();
 void attachSpecularOpticalSurface(G4LogicalVolume* lv);
+void attachLambertianOpticalSurface(G4LogicalVolume* lv);
 
 DetectorConstruction::DetectorConstruction(std::string meta_fn) :
   G4VUserDetectorConstruction(),
@@ -175,6 +176,9 @@ void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const json &met)
     else if (type == "specular_reflector") {
         attachSpecularOpticalSurface(lv);
     }
+    else if (type == "lambertian_reflector") {
+        attachLambertianOpticalSurface(lv);
+    }
     else if (type == "scintillator") {
         crLogVols.push_back(lv);
     }
@@ -224,6 +228,23 @@ static G4OpticalSurface* siOpticalSurface() {
     ss->SetFinish(polished);
     ss->SetType(dielectric_dielectric);
     return ss;
+}
+
+void attachLambertianOpticalSurface(G4LogicalVolume* lv) {
+    G4ThreadLocal static G4OpticalSurface* surf = nullptr;
+    if (surf == nullptr) {
+      surf = new G4OpticalSurface("lambertian-optical-surface");
+      surf->SetModel(unified);
+      surf->SetType(dielectric_dielectric);
+      surf->SetFinish(groundfrontpainted);
+      surf->SetSigmaAlpha(0.);
+      surf->SetMaterialPropertiesTable(
+          G4NistManager::Instance()->
+          FindOrBuildMaterial(Materials::kNIST_TEFLON)->
+          GetMaterialPropertiesTable());
+    }
+
+    (void) new G4LogicalSkinSurface("lambertian-skin-surface", lv, surf);
 }
 
 void attachSpecularOpticalSurface(G4LogicalVolume* lv) {
