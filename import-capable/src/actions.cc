@@ -2,6 +2,7 @@
 #include <analysis.hh>
 #include <detectors.hh>
 
+#include <G4EventManager.hh>
 #include <G4ProcessManager.hh>
 #include <G4SystemOfUnits.hh>
 
@@ -34,8 +35,8 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction() {
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event* evt) {
   gps->GeneratePrimaryVertex(evt);
-  // double e = gps->GetParticleEnergy();
-  // Analysis::instance().addIncidentEnergy(e);
+  double e = gps->GetParticleEnergy();
+  Analysis::instance().addIncidentEnergy(e);
 }
 
 RunAction::RunAction() :
@@ -53,18 +54,31 @@ void RunAction::EndOfRunAction(const G4Run*) {
     Analysis::instance().saveFiles(IsMaster());
 }
 
-EventAction::EventAction() : G4UserEventAction() {
+EventAction::EventAction() : G4UserEventAction(),
+    scintillatedPhotonsPerEvent{0}
+{
 }
 
 EventAction::~EventAction()
 { }
 
+
+void EventAction::BeginOfEventAction(const G4Event* event) {
+    scintillatedPhotonsPerEvent.Put(0);
+}
+
 void EventAction::EndOfEventAction(const G4Event* evt) {
     if (!evt) return;
     auto& anInst = Analysis::instance();
     anInst.saveEvent(evt);
+    anInst.saveScintillated(scintillatedPhotonsPerEvent.Get());
 }
 
+void EventAction::addScintillatedPhotons(size_t add) {
+    scintillatedPhotonsPerEvent.Put(
+        scintillatedPhotonsPerEvent.Get() + add
+    );
+}
 
 // Things needed for the SteppingAction
 namespace {
@@ -143,12 +157,25 @@ SteppingAction::~SteppingAction()
 { }
 
 void SteppingAction::UserSteppingAction(const G4Step* step) {
+    trackScintillation(step);
     auto* track = step->GetTrack();
     if (track->GetDefinition() == G4OpticalPhoton::Definition()) {
         processOptical(step);
     }
-    else if (track->GetDefinition() == G4GenericIon::Definition()) {
-        G4cout << "GOT AN ION" << G4endl;
+}
+
+void SteppingAction::trackScintillation(const G4Step* step)
+{
+    const std::vector<const G4Track*>* secs;
+    if ((secs = step->GetSecondaryInCurrentStep()) && secs->size() > 0) {
+        size_t numOpticals = std::count_if(
+            secs->begin(), secs->end(), [](const G4Track* t) {
+            return t->GetParticleDefinition()->GetParticleName() == "opticalphoton"; });
+        // store the number of optical photons generated
+        // to be saved at end of event
+        auto* ea = dynamic_cast<EventAction*>(
+            G4EventManager::GetEventManager()->GetUserEventAction());
+        if (ea) ea->addScintillatedPhotons(numOpticals);
     }
 }
 

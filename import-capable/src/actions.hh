@@ -55,7 +55,12 @@ class EventAction : public G4UserEventAction {
 public:
     EventAction();
     ~EventAction();
-    void EndOfEventAction(const G4Event* event);
+    void EndOfEventAction(const G4Event* event) override final;
+    void BeginOfEventAction(const G4Event* event) override final;
+
+    void addScintillatedPhotons(size_t add);
+private:
+    G4Cache<size_t> scintillatedPhotonsPerEvent;
 };
 
 class SteppingAction : public G4UserSteppingAction {
@@ -65,6 +70,7 @@ public:
     virtual void UserSteppingAction(const G4Step*);
 
 private:
+    void trackScintillation(const G4Step* step);
     void processOptical(const G4Step* step);
     void processDetected(const G4VPhysicalVolume*, const G4VPhysicalVolume*, const G4Step*);
 };
