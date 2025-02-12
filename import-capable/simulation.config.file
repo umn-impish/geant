@@ -1,5 +1,5 @@
 # prefix the folders saved
-save-prefix string noprefix
+save-prefix string no-prefix
 
 # enable-scintillation 0
 save-each-cryst-hit-energy bool 0
@@ -10,6 +10,7 @@ save-sipm-energies bool 0
 
 # unit = nanosecond
 scintillator-time-const double 50
+enable-scintillation bool 0
 
 # Geometric configurations are set via JSON
 # metadata which is passed to DetectorConstruction

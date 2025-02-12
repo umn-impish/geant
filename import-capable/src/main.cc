@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     std::string configFile{root / "simulation.config.file"};
 
     // Set the file name for this run
-    GlobalConfigs::instance(configFile);
+    const auto& configInst = GlobalConfigs::instance(configFile);
 
     auto* ui = new G4UIExecutive(argc, argv);
 
@@ -57,11 +57,13 @@ int main(int argc, char* argv[]) {
     runManager->SetUserInitialization(new ActionInitialization);
 
     // optionally enable scintillation
-    G4OpticalParameters::Instance()->SetProcessActivation("Scintillation", false);
+    G4OpticalParameters::Instance()->SetProcessActivation(
+        "Scintillation",
+        configInst.configOption<bool>("enable-scintillation")
+    );
 
     // I have found Cherenkov radiation to be error-prone; disable it
     G4OpticalParameters::Instance()->SetProcessActivation("Cerenkov", false);
-
 
     auto* uiMan = G4UImanager::GetUIpointer();
     bool batchMode = (argc > 2);
