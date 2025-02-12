@@ -21,7 +21,7 @@ FRACTIONS = {
 };
 
 static const double RESOLUTION_SCALE = 1;
-static const double SCINT_YIELD = 33000 / MeV;
+static const double SCINT_YIELD = 30000 / MeV;
 static const double DECAY_TIME_CONSTANT = 36 * ns;
 
 // computed with a fit to experimental data
