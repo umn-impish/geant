@@ -17,7 +17,7 @@
 
 static constexpr bool checkOverlaps = true;
 static G4OpticalSurface* siOpticalSurface();
-void attachSpecularOpticalSurface(G4LogicalVolume* lv);
+void attachEsrOpticalSurface(G4LogicalVolume* lv);
 void attachLambertianOpticalSurface(G4LogicalVolume* lv);
 
 DetectorConstruction::DetectorConstruction(std::string meta_fn) :
@@ -69,8 +69,6 @@ DetectorConstruction::makeWorld() {
 }
 
 void DetectorConstruction::importSolids() {
-    auto nm = G4NistManager::Instance();
-
     auto meta = json::parse(std::ifstream{meta_fn});
 
     const std::string stl = "stl", obj = "obj";
@@ -157,7 +155,7 @@ void DetectorConstruction::importMesh(
 
         configureVolume(lv, mdat);
 
-        auto* place = new G4PVPlacement(
+        (void) new G4PVPlacement(
             rotMat, G4ThreeVector(), lv,
             name + "_placement", worldLogVol,
             false, 0, checkOverlaps
@@ -174,7 +172,7 @@ void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const json &met)
         siLogVols.push_back(lv);
     }
     else if (type == "specular_reflector") {
-        attachSpecularOpticalSurface(lv);
+        attachEsrOpticalSurface(lv);
     }
     else if (type == "lambertian_reflector") {
         attachLambertianOpticalSurface(lv);
@@ -247,7 +245,7 @@ void attachLambertianOpticalSurface(G4LogicalVolume* lv) {
     (void) new G4LogicalSkinSurface("lambertian-skin-surface", lv, surf);
 }
 
-void attachSpecularOpticalSurface(G4LogicalVolume* lv) {
+void attachEsrOpticalSurface(G4LogicalVolume* lv) {
     G4ThreadLocal static G4OpticalSurface* surf = nullptr;
     if (surf == nullptr) {
         surf = new G4OpticalSurface("specular-optical-surface");
@@ -257,27 +255,58 @@ void attachSpecularOpticalSurface(G4LogicalVolume* lv) {
         surf->SetSigmaAlpha(0.);
         auto* pt = new G4MaterialPropertiesTable();
 
-        // TODO: maybe make this customizable?
-        // this is equivalent to the Lambertian scattering probability in this situation
-        const double DEFECT_PROB = 0.02;
         const std::unordered_map<
             const char*,
             const std::vector<G4double>
         > props = {
-            // want everything to reflect off
-            {"REFLECTIVITY", {1, 1}},
             {"TRANSMITTANCE", {0, 0}},
             {"EFFICIENCY", {0, 0}},
-            {"SPECULARSPIKECONSTANT", {1 - DEFECT_PROB, 1 - DEFECT_PROB}},
+            {"SPECULARSPIKECONSTANT", {0, 0}},
             {"SPECULARLOBECONSTANT", {0, 0}},
             {"BACKSCATTERCONSTANT", {0, 0}},
         };
 
         // Apply across whole optical photon range
-        const std::vector<G4double> energies = {1e-3*eV, 6*eV};
+        std::vector<G4double> energies = {1e-3*eV, 6*eV};
         for (const auto& [name, vals] : props) {
             pt->AddProperty(name, energies, vals);
         }
+
+        // The reflectivity of ESR is more complicated
+        const auto refl_energies = std::vector<double>{
+            1.04*eV, 1.04*eV, 1.05*eV, 1.06*eV, 1.07*eV, 1.07*eV, 1.08*eV, 1.08*eV, 1.09*eV, 1.10*eV, 
+            1.11*eV, 1.11*eV, 1.12*eV, 1.13*eV, 1.13*eV, 1.14*eV, 1.15*eV, 1.16*eV, 1.16*eV, 1.17*eV, 
+            1.18*eV, 1.19*eV, 1.20*eV, 1.20*eV, 1.21*eV, 1.21*eV, 1.22*eV, 1.22*eV, 1.23*eV, 1.23*eV, 
+            1.24*eV, 1.24*eV, 1.25*eV, 1.25*eV, 1.25*eV, 1.26*eV, 1.27*eV, 1.27*eV, 1.28*eV, 1.29*eV, 
+            1.29*eV, 1.30*eV, 1.31*eV, 1.31*eV, 1.32*eV, 1.33*eV, 1.34*eV, 1.36*eV, 1.38*eV, 1.40*eV, 
+            1.41*eV, 1.42*eV, 1.43*eV, 1.45*eV, 1.45*eV, 1.47*eV, 1.48*eV, 1.50*eV, 1.51*eV, 1.52*eV, 
+            1.53*eV, 1.55*eV, 1.57*eV, 1.58*eV, 1.60*eV, 1.61*eV, 1.62*eV, 1.64*eV, 1.65*eV, 1.66*eV, 
+            1.67*eV, 1.68*eV, 1.69*eV, 1.70*eV, 1.71*eV, 1.72*eV, 1.75*eV, 1.76*eV, 1.78*eV, 1.80*eV, 
+            1.82*eV, 1.84*eV, 1.85*eV, 1.88*eV, 1.90*eV, 1.92*eV, 1.93*eV, 1.96*eV, 1.98*eV, 2.00*eV, 
+            2.03*eV, 2.06*eV, 2.09*eV, 2.11*eV, 2.13*eV, 2.17*eV, 2.19*eV, 2.23*eV, 2.26*eV, 2.29*eV, 
+            2.33*eV, 2.37*eV, 2.41*eV, 2.44*eV, 2.48*eV, 2.52*eV, 2.55*eV, 2.59*eV, 2.64*eV, 2.69*eV, 
+            2.73*eV, 2.77*eV, 2.80*eV, 2.84*eV, 2.85*eV, 2.89*eV, 2.93*eV, 2.96*eV, 3.01*eV, 3.05*eV, 
+            3.09*eV, 3.13*eV, 3.16*eV, 3.17*eV, 3.19*eV, 3.20*eV, 3.23*eV, 3.25*eV, 3.27*eV, 3.28*eV, 
+            3.29*eV, 3.30*eV, 3.31*eV, 3.33*eV, 3.34*eV, 3.36*eV, 3.40*eV, 3.45*eV, 3.50*eV, 3.53*eV
+        };
+        const auto reflectivities = std::vector<double>{
+            0.17, 0.17, 0.17, 0.18, 0.17, 0.17, 0.17, 0.17, 0.17, 0.18, 
+            0.18, 0.18, 0.17, 0.16, 0.16, 0.17, 0.18, 0.18, 0.18, 0.18, 
+            0.18, 0.18, 0.18, 0.19, 0.20, 0.21, 0.23, 0.25, 0.29, 0.34, 
+            0.40, 0.47, 0.52, 0.58, 0.62, 0.67, 0.74, 0.81, 0.87, 0.91, 
+            0.94, 0.96, 0.97, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 
+            0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 
+            0.99, 0.99, 0.99, 0.98, 0.97, 0.96, 0.96, 0.95, 0.95, 0.95, 
+            0.95, 0.95, 0.95, 0.96, 0.97, 0.98, 0.98, 0.98, 0.98, 0.98, 
+            0.99, 0.99, 0.98, 0.98, 0.98, 0.99, 0.98, 0.98, 0.98, 0.98, 
+            0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 
+            0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.97, 
+            0.97, 0.97, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.97, 0.97, 
+            0.97, 0.96, 0.94, 0.92, 0.89, 0.86, 0.74, 0.60, 0.41, 0.35, 
+            0.28, 0.23, 0.18, 0.15, 0.14, 0.13, 0.13, 0.13, 0.12, 0.12
+        };
+
+        pt->AddProperty("REFLECTIVITY", refl_energies, reflectivities);
 
         surf->SetMaterialPropertiesTable(pt);
     }

@@ -18,6 +18,8 @@ target_link_libraries(
     nlohmann_json::nlohmann_json
 )
 
+target_compile_options(cadmesh-wrapper PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data-out")
 file(CREATE_LINK "${CMAKE_SOURCE_DIR}/macros" "${CMAKE_CURRENT_BINARY_DIR}/macros" SYMBOLIC)
 
