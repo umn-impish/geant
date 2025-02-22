@@ -45,6 +45,7 @@ namespace {
 }
 
 uint32_t Analysis::runNumber = 0;
+G4ThreadLocal G4int Analysis::currentEventId = 0;
 
 Analysis::Analysis() :
     crystOut(kCRYST_OUT, false),
@@ -196,7 +197,7 @@ void Analysis::saveCrystalHits(const std::vector<VirtualHit*>* vec) {
 
     if (!saveEachHitEnergy) {
         double sum = std::accumulate(deposits.begin(), deposits.end(), 0.);
-        crystOut.file() << (sum / keV) << ' ';
+        crystOut.file() << Analysis::currentEventId << ' ' << (sum / keV);
         if (saveCrystPos) {
             for (const auto& hitPos : positions)
                 crystOut.file() << ' ' << hitPos;
@@ -218,7 +219,7 @@ void Analysis::saveCrystalHits(const std::vector<VirtualHit*>* vec) {
 
 void Analysis::saveSiHits(const std::vector<VirtualHit*>* vec)
 {
-    siOut.file() << vec->size();
+    siOut.file() << Analysis::currentEventId << ' ' << vec->size();
     if (saveSiPositions) {
         for (const auto* h : *vec) {
             const auto& p = h->peekPosition();
@@ -246,7 +247,15 @@ void Analysis::saveScintillated(std::size_t num)
     G4AutoLock l(&dataMux);
     if (num == 0) return;
     // # scintillated per event can vary
-    scintOut.file() << num << std::endl;
+    scintOut.file() << Analysis::currentEventId << ' ' << num << std::endl;
+}
+
+void Analysis::setEventId(G4int id) {
+    currentEventId = id;
+}
+
+G4int Analysis::getEventId() {
+    return currentEventId;
 }
 
 // filewrapper below

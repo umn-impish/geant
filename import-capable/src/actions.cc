@@ -65,6 +65,7 @@ EventAction::~EventAction()
 
 void EventAction::BeginOfEventAction(const G4Event* event) {
     scintillatedPhotonsPerEvent.Put(0);
+    Analysis::instance().setEventId(event->GetEventID());
 }
 
 void EventAction::EndOfEventAction(const G4Event* evt) {
