@@ -24,6 +24,7 @@ namespace Materials {
     void configureCeBr3Scintillation();
     void makeLyso();
     void makeGagg();
+    void makeYap();
 }
 
 namespace {
@@ -74,42 +75,7 @@ void makeMaterials()
     makeTecCeramic();
     makeSddSubstrate();
     makeHalfSilicon();
-}
-
-std::string selectScintillator(const std::string& choice)
-{
-    using ch = std::unordered_map<std::string, std::string>;
-    const ch SCINT_CHOICES = {
-        {"cebr3", kCEBR3},
-        {"lyso", Lyso::NAME},
-        {"gagg", Gagg::NAME}
-    };
-
-    try {
-        return SCINT_CHOICES.at(choice);
-    }
-    catch (const std::out_of_range& e) {
-        std::stringstream ss;
-        ss << choice << " is not a valid scintillator type." << std::endl
-           << "valid choices are: " << std::endl;
-        for (const auto& [k, _] : SCINT_CHOICES) {
-            ss << "\t- " << k << std::endl;
-        }
-        throw std::runtime_error(ss.str().c_str());
-    }
-
-    return "";
-}
-
-G4Material* selectReflectorMaterial(const std::string& choice)
-{
-    using ch = std::unordered_map<std::string, std::string>;
-    const ch REFLECTOR_CHOICES = {
-        {"teflon", kNIST_TEFLON},
-        {"esr", kESR}
-    };
-
-    return G4Material::GetMaterial(REFLECTOR_CHOICES.at(choice));
+    makeYap();
 }
 
 void configureTeflon()
@@ -170,6 +136,60 @@ void makeGagg()
     // skip Mie scattering (doesn't apply)
 
     scint->SetMaterialPropertiesTable(mpt);
+}
+
+void makeYap() {
+    if (G4Material::GetMaterial(Yap::name) != nullptr)
+        return;
+
+    auto* nm = G4NistManager::Instance();
+
+    auto* yap = new G4Material(
+        Yap::name,
+        Yap::density,
+        Yap::fractions.size(),
+        kStateSolid,
+        SATELLITE_TEMP
+    );
+
+    double totalMass = 0;
+    for (const auto& [n, v] : Yap::fractions) {
+        auto* elt = nm->FindOrBuildElement(n);
+        totalMass += v * elt->GetAtomicMassAmu();
+    }
+
+    for (const auto& [n, v] : Yap::fractions) {
+        auto* elt = nm->FindOrBuildElement(n);
+        double massFrac = (v * elt->GetAtomicMassAmu()) / totalMass;
+        yap->AddElement(elt, massFrac);
+    }
+
+    auto* mpt = new G4MaterialPropertiesTable;
+    auto* opp = G4OpticalParameters::Instance();
+    opp->SetScintFiniteRiseTime(false);
+    mpt->AddConstProperty(kSCINT_YIELD, Yap::scint_yield);
+    mpt->AddProperty(
+        kREFR_IDX,
+        Yap::rindex_energies,
+        Yap::rindex,
+        useSpline);
+
+    // updated in v11
+    mpt->AddProperty(
+        kONLY_SCINT_COMPONENT,
+        Yap::scint_energies,
+        Yap::scint_intens,
+        useSpline
+    );
+    mpt->AddConstProperty(kONLY_TIME_CONSTANT, Yap::decay_time_constant);
+
+    // stdev of # of photons emitted = RESOLUTION_SCALE * sqrt(mean # of photons)
+    mpt->AddConstProperty(kRESOLUTION_SCALE, Yap::resolution_scale);
+    mpt->AddProperty(kABSORPTION_LEN, Yap::abs_len_energies, Yap::abs_len, useSpline);
+    // skip optical Rayleigh scattering (not important)
+    // skip Mie scattering (doesn't apply)
+
+    yap->SetMaterialPropertiesTable(mpt);
 }
 
 void makeLyso()

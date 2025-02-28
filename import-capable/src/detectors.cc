@@ -51,9 +51,9 @@ processOptical(const G4Step* step)
         return;
 
     auto pos = step->GetPostStepPoint()->GetPosition();
-    // we want GlobalTime because it's the time since the last *event* started!
-    // LocalTime is the time since the track was created (we don't want this)
-    auto t = step->GetPostStepPoint()->GetGlobalTime();
+    // LocalTime is the time since the track was created;
+    // GlobalTime is the time since the event started.
+    auto t = step->GetPostStepPoint()->GetLocalTime();
     auto* hit = new SiHit(pos, t, edep);
     hitsCollection->insert(hit);
 }

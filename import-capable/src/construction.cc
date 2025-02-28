@@ -87,6 +87,7 @@ void DetectorConstruction::importSolids() {
 
             for (auto s : solids) {
                 auto name = s->GetName();
+                std::cout << "PART NAME IS " << name << std::endl;
                 auto cur_meta = mdat[name];
                 importMesh(key_ + name, mesh, cur_meta);
             }
@@ -103,8 +104,10 @@ void DetectorConstruction::importMesh(
     std::shared_ptr<CADMesh::TessellatedMesh> mesh,
     const json& mdat
 ) {
+    // for generating random colors
     static std::default_random_engine en{std::random_device{}()};
     static std::uniform_real_distribution<double> dist(0, 1);
+
     // scale from whatever unit in file to mm (Geant native units)
     mesh->SetScale(mdat["scale"].get<double>());
 
@@ -274,7 +277,8 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
 
         // The reflectivity of ESR is more complicated
         const auto refl_energies = std::vector<double>{
-            1.04*eV, 1.04*eV, 1.05*eV, 1.06*eV, 1.07*eV, 1.07*eV, 1.08*eV, 1.08*eV, 1.09*eV, 1.10*eV, 
+            0.1*eV, 8*eV
+            /* 1.04*eV, 1.04*eV, 1.05*eV, 1.06*eV, 1.07*eV, 1.07*eV, 1.08*eV, 1.08*eV, 1.09*eV, 1.10*eV, 
             1.11*eV, 1.11*eV, 1.12*eV, 1.13*eV, 1.13*eV, 1.14*eV, 1.15*eV, 1.16*eV, 1.16*eV, 1.17*eV, 
             1.18*eV, 1.19*eV, 1.20*eV, 1.20*eV, 1.21*eV, 1.21*eV, 1.22*eV, 1.22*eV, 1.23*eV, 1.23*eV, 
             1.24*eV, 1.24*eV, 1.25*eV, 1.25*eV, 1.25*eV, 1.26*eV, 1.27*eV, 1.27*eV, 1.28*eV, 1.29*eV, 
@@ -287,10 +291,11 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
             2.33*eV, 2.37*eV, 2.41*eV, 2.44*eV, 2.48*eV, 2.52*eV, 2.55*eV, 2.59*eV, 2.64*eV, 2.69*eV, 
             2.73*eV, 2.77*eV, 2.80*eV, 2.84*eV, 2.85*eV, 2.89*eV, 2.93*eV, 2.96*eV, 3.01*eV, 3.05*eV, 
             3.09*eV, 3.13*eV, 3.16*eV, 3.17*eV, 3.19*eV, 3.20*eV, 3.23*eV, 3.25*eV, 3.27*eV, 3.28*eV, 
-            3.29*eV, 3.30*eV, 3.31*eV, 3.33*eV, 3.34*eV, 3.36*eV, 3.40*eV, 3.45*eV, 3.50*eV, 3.53*eV
+            3.29*eV, 3.30*eV, 3.31*eV, 3.33*eV, 3.34*eV, 3.36*eV, 3.40*eV, 3.45*eV, 3.50*eV, 3.53*eV */
         };
         const auto reflectivities = std::vector<double>{
-            0.17, 0.17, 0.17, 0.18, 0.17, 0.17, 0.17, 0.17, 0.17, 0.18, 
+            0.92, 0.92
+            /* 0.17, 0.17, 0.17, 0.18, 0.17, 0.17, 0.17, 0.17, 0.17, 0.18, 
             0.18, 0.18, 0.17, 0.16, 0.16, 0.17, 0.18, 0.18, 0.18, 0.18, 
             0.18, 0.18, 0.18, 0.19, 0.20, 0.21, 0.23, 0.25, 0.29, 0.34, 
             0.40, 0.47, 0.52, 0.58, 0.62, 0.67, 0.74, 0.81, 0.87, 0.91, 
@@ -303,7 +308,7 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
             0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.97, 
             0.97, 0.97, 0.98, 0.98, 0.98, 0.98, 0.98, 0.98, 0.97, 0.97, 
             0.97, 0.96, 0.94, 0.92, 0.89, 0.86, 0.74, 0.60, 0.41, 0.35, 
-            0.28, 0.23, 0.18, 0.15, 0.14, 0.13, 0.13, 0.13, 0.12, 0.12
+            0.28, 0.23, 0.18, 0.15, 0.14, 0.13, 0.13, 0.13, 0.12, 0.12 */
         };
 
         pt->AddProperty("REFLECTIVITY", refl_energies, reflectivities);

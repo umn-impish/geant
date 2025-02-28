@@ -23,6 +23,7 @@
 #include "GaGGProperties.hh"
 #include "ESRProperties.hh"
 #include "PDMSProperties.hh"
+#include <yap.hh>
 
 /*
  * Empirical data sources
@@ -36,9 +37,6 @@
 
 namespace Materials
 {
-    std::string selectScintillator(const std::string& choice);
-    G4Material* selectReflectorMaterial(const std::string& choice);
-
     static const G4String kVACUUM = "vacuum";
     static const G4double VACUUM_MOLAR_DENSITY = 1.01 * g / mole;
     static const G4double VACUUM_ATOMIC_NUMBER = 1.0;
