@@ -65,5 +65,5 @@ const std::vector<G4double> CEBR3_ABS_LEN_ENERGIES = {
     2.25290e+01*eV, 2.26682e+01*eV, 2.28074e+01*eV
 };
 
-const std::vector<G4double> CEBR3_ABS_LEN(CEBR3_ABS_LEN_ENERGIES.size(), 100. * m);
+const std::vector<G4double> CEBR3_ABS_LEN(CEBR3_ABS_LEN_ENERGIES.size(), 50.0*cm);
 }
