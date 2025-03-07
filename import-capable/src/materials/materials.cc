@@ -19,6 +19,7 @@ namespace Materials {
     void makeTecCeramic();
     void makeSddSubstrate();
     void makeHalfSilicon();
+    void makeTungstenCopperAlloy();
 
     void makeCeBr3();
     void configureCeBr3Scintillation();
@@ -76,6 +77,7 @@ void makeMaterials()
     makeSddSubstrate();
     makeHalfSilicon();
     makeYap();
+    makeTungstenCopperAlloy();
 }
 
 void configureTeflon()
@@ -542,10 +544,9 @@ void makeSddSubstrate() {
     auto* substrate = new G4Material(
         "sdd_substrate", 4 * g/cm3, 2,
         kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
-    substrate->AddMaterial(alumina, 0.98);
-    substrate->AddMaterial(au, 0.02);
+    substrate->AddMaterial(alumina, 0.9999);
+    substrate->AddMaterial(au, 0.0001);
 }
-
 
 void makeHalfSilicon() {
     if (G4Material::GetMaterial("half_silicon"))
@@ -560,6 +561,25 @@ void makeHalfSilicon() {
         "half_silicon", 1.165 * g/cm3, 1,
         kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
     halfSi->AddMaterial(si, 1.0);
+}
+
+void  makeTungstenCopperAlloy() {
+    // Amir's 90% W 10% Cu alloy
+    // by weight
+    auto* name = "w_cu_alloy";
+    if (G4Material::GetMaterial(name))
+        return;
+
+    auto* nm = G4NistManager::Instance();
+    auto* cu = nm->FindOrBuildMaterial("G4_Cu");
+    auto* w = nm->FindOrBuildMaterial("G4_W");
+
+    auto* alloy = new G4Material(
+        name, 17.2 * g/cm3, 2, kStateSolid
+    );
+
+    alloy->AddMaterial(cu, 0.1);
+    alloy->AddMaterial(w, 0.9);
 }
 
 } // namespace Materials
