@@ -10,6 +10,9 @@ There are a few custom materials that need to get added:
 import json
 import os
 
+# If we want to do stuff that Amir requested
+cubixx = True
+
 direc = 'x123-parts'
 def generate_meta(fn, mat, type_='passive', scale=1, trans=(0, 0, 0), rot=(0, 0, 0)):
     return {
@@ -36,7 +39,7 @@ output |= generate_meta('chromium.stl', 'G4_Cr')
 output |= generate_meta('titanium.stl', 'G4_Ti')
 output |= generate_meta('aluminum.stl', 'G4_Al')
 
-# Custom material: 99% Al2O3, 1% gold (traces on the edges)
+# Custom material: 99.99% Al2O3, 0.01% gold (traces on the edges)
 output |= generate_meta('substrate.stl', 'sdd_substrate')
 
 # the detector is (stupidly) named "silicon"
@@ -54,6 +57,11 @@ output |= generate_meta('second_silicon.stl', 'half_silicon')
 
 # Kovar is a cobalt/nickel alloy
 output |= generate_meta('base.stl', 'kovar')
+
+if cubixx:
+    # There are collimators in front of the detector head
+    output |= generate_meta('closer_collimator.stl', 'w_cu_alloy')
+    output |= generate_meta('further_collimator.stl', 'w_cu_alloy')
 
 # Give keys
 os.makedirs('x123-parts', exist_ok=True)

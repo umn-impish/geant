@@ -22,16 +22,16 @@ _define_ your photon model bins.
 '''
 
 # Energy parameters: start, end, step
-ea = 1
-eb = 80
-de = 0.1
+ea = 0.02
+eb = 20
+de = 0.05
 
 # How many runs per energy range
-num_runs = 100000
+num_runs = 1000000
 
 # Set these if you'd like
 # (in cm)
-x_center, y_center, z_center = 0, 0, 2
+x_center, y_center, z_center = 0, 0, 10
 
 # Orient the momentum direction how you'd like
 # The easiest might be along -Z (how this
@@ -41,7 +41,7 @@ px, py, pz = 0, 0, -1
 # Define the size of the plane in mm
 # 8mm = large enough radius for X-123 detector head
 # Need larger for other geometries
-radius = 8
+radius = 16 / 2
 
 # We set up a gamma plane source in front of our detector
 setup = f'''/gps/particle gamma
@@ -62,7 +62,7 @@ setup = f'''/gps/particle gamma
 /gps/ene/intercept 1
 
 # Print run information occasionally
-/run/printProgress {num_runs // 2}'''
+/run/printProgress {num_runs // 5}'''
 
 # Each run is a "flat" distribution across a narrow energy range.
 # We later collect the data into a row (or column) of a response
