@@ -5,6 +5,11 @@ Short Python script to generate a Geant4 macro
 which shoots gammas across an energy range to make a "pixellated"
 response matrix.
 
+The script is configured to be a "module" that can be run on its own,
+or imported and have e.g. the energy bounds be modified per file name,
+if you want to batch the runs up into smaller chunks.
+This could be useful to use with a parallelism system like Slurm.
+
 Assumes the active surface is oriented towards +Z.
 
 The user can specify the energy range, bin width, number of runs
@@ -20,6 +25,9 @@ or not be able to re-bin down to the count bins you want to use.
 **IMPORTANTLY,** the energy spacing and boundaries you supply here
 _define_ your photon model bins.
 '''
+
+# the file name to output
+file_name = 'srm.mac'
 
 # Energy parameters: start, end, step
 ea = 0.02
@@ -43,8 +51,9 @@ px, py, pz = 0, 0, -1
 # Need larger for other geometries
 radius = 16 / 2
 
-# We set up a gamma plane source in front of our detector
-setup = f'''/gps/particle gamma
+def write_macro():
+    # We set up a gamma plane source in front of our detector
+    setup = f'''/gps/particle gamma
 
 /gps/pos/centre {x_center} {y_center} {z_center} cm
 /gps/pos/type Plane
@@ -64,16 +73,20 @@ setup = f'''/gps/particle gamma
 # Print run information occasionally
 /run/printProgress {num_runs // 5}'''
 
-# Each run is a "flat" distribution across a narrow energy range.
-# We later collect the data into a row (or column) of a response
-# matrix to allow photon to count conversion.
-run = '''/gps/ene/min {e0:.3f} keV
+    # Each run is a "flat" distribution across a narrow energy range.
+    # We later collect the data into a row (or column) of a response
+    # matrix to allow photon to count conversion.
+    run = '''/gps/ene/min {e0:.3f} keV
 /gps/ene/max {e1:.3f} keV''' + f'\n/run/beamOn {num_runs}\n'
 
-# Write out the configuration to a .mac file to be run
-with open('srm.mac', 'w') as f:
-    print(setup, file=f)
-    print('', file=f)
-    for energy in np.arange(ea, eb, de):
-        this_run = run.format(e0=energy, e1=energy + de)
-        print(this_run, file=f)
+    # Write out the configuration to a .mac file to be run
+    with open(file_name, 'w') as f:
+        print(setup, file=f)
+        print('', file=f)
+        for energy in np.arange(ea, eb, de):
+            this_run = run.format(e0=energy, e1=energy + de)
+            print(this_run, file=f)
+
+
+if __name__ == '__main__':
+    write_macro()
