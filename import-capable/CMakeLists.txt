@@ -22,6 +22,7 @@ target_compile_options(cadmesh-wrapper PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/data-out")
 file(CREATE_LINK "${CMAKE_SOURCE_DIR}/macros" "${CMAKE_CURRENT_BINARY_DIR}/macros" SYMBOLIC)
+file(CREATE_LINK "${CMAKE_SOURCE_DIR}/simulation.config.file" "${CMAKE_CURRENT_BINARY_DIR}/simulation.config.file" SYMBOLIC)
 
 add_compile_options(-Wall -Wextra -Wpedantic -pedantic -Werror)
 add_compile_definitions(CMAKE_CURRENT_BINARY_DIR="${CMAKE_CURRENT_BINARY_DIR}")
