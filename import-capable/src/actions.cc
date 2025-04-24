@@ -200,9 +200,6 @@ void SteppingAction::processOptical(const G4Step* step)
 
     const G4String preName = preVol? preVol->GetName() : "";
     const G4String postName = postVol? postVol->GetName() : "";
-    bool yesSilicon =
-        G4StrUtil::contains(postName, "si") ||
-        G4StrUtil::contains(preName, "si");
 
     if (postPt->GetStepStatus() == fGeomBoundary) {
         auto stat = boundary->GetStatus();
@@ -224,11 +221,6 @@ void SteppingAction::processOptical(const G4Step* step)
                        << "post vol" << postName << G4endl;
                 break;
             default:
-                if (yesSilicon) {
-                    G4cout << "something weird: " << optProcLookup.at(stat) << G4endl
-                           << "pre volume " << preName << G4endl
-                           << "post volume " << postName << G4endl;
-                }
                 break;
         }
     }
