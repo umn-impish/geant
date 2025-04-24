@@ -486,7 +486,7 @@ void makeTungsten3dFilament() {
     pla->AddMaterial(o, 0.44);
 
     auto* tungstenImbued = new G4Material(
-        "tungsten-pla-filament", 7.8 * g/cm3, 2,
+        "tungsten-pla-filament", 6.9 * g/cm3, 2,
         kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
 
     // 8% PLA, 92% W, by mass
