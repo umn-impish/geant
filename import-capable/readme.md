@@ -1,5 +1,59 @@
 # Simple way to import shapes into G4 for optical simulations
 
+## Required libraries
+- (if you want to run the example 3D shapes script) [CadQuery](https://github.com/CadQuery/cadquery)
+    ```bash
+    # This is using uv for version management;
+    # you can use conda or whatever, but I prefer uv
+    # uv venv --python=3.10
+    # source .venv/bin/activate
+
+    # after setting up your Python installation, do these steps
+    cd scripts
+    uv pip instal wheel cadquery-ocp cadquery numpy==1.24.0 astropy numpy
+    ```
+- [Geant4]() and an appropriate Qt version
+    - Read the [installation instructions](https://geant4-userdoc.web.cern.ch/UsersGuides/InstallationGuide/html/index.html).
+    - I recommend installing from source.
+    - Make sure multi-threading is enabled and Qt support is selected.
+    ```bash
+    # Example installation command
+    # (first, download the source and cd into the G4 directory)
+    mkdir build
+    cd build
+    cmake -DCMAKE_INSTALL_PREFIX="$HOME/g4_install" -DGEANT4_INSTALL_DATA=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_USE_QT=ON -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
+    make -jN # N = number of cores you want to use
+    sudo make install
+    ```
+- [CADMesh](https://github.com/christopherpoole/CADMesh/tree/master) and `tetgen`
+    - Can be installed like most c++ libraries:
+    ```bash
+    # Prereq: tetgen
+    # This is the current version in Dec 2024; might change
+    sudo apt update && sudo apt install libtet1.5-dev
+
+    # Actual installation
+    git clone https://github.com/christopherpoole/CADMesh.git
+    cd CADMesh
+    mkdir build
+    cd build
+    cmake ..
+    make -jN # N = number of cores you want to use
+    sudo make install
+    ```
+- [json](https://github.com/nlohmann/json)
+    - Can be installed like most c++ libraries:
+    ```bash
+    git clone https://github.com/nlohmann/json.git
+    cd json
+    mkdir build
+    cd build
+    cmake ..
+    make -jN # N = number of cores you want to use
+    sudo make install
+    ```
+
+
 ## Overview
 
 Here we use the [CADMesh](https://github.com/christopherpoole/CADMesh/tree/master)
@@ -42,6 +96,9 @@ meta = {
         # 2. scintillator: detects X-rays
         # 3. optical_detector: detects opticals
         # 4. passive: interacts with particles but is not a detector
+        # 5. roughener: specifies if optical surfaces should get roughened.
+        #    for this, you also need to provide an "other_volume" key to say
+        #    what this particular volume should roughen up.
         "type": "type of object",
 
         # How much to scale the units:
@@ -55,7 +112,12 @@ meta = {
 
         # Euler rotation angles for the object,
         # if it should be rotated at all
-        "euler_rotation": [0, 0, 0]
+        "euler_rotation": [0, 0, 0],
+
+        # The color you'd like to use in [R, G, B, A]
+        # as floats in [0, 1]. If not specified, a random
+        # color is used.
+        "color": [1, 0, 0, 0.1]
     },
 
     # Write more metadata as needed
@@ -68,7 +130,16 @@ with open('meta.json', 'w') as f:
     f.write(json.dumps(meta))
 ```
 
+## Helpful Geant4 resources
+It's hard to find some information on Geant4 components, so here's a short list of references I often go back to:
+- [Geant4 commands documentation](https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/Control/AllResources/Control/UIcommands/_.html)
+- [Informal G4GeneralParticleSource documentation](https://geant4-userdoc.web.cern.ch/UsersGuides/ForApplicationDeveloper/html/GettingStarted/generalParticleSource.html)
+- Command to run a geometry overlap check: `/geometry/test/run`
+- To do a big run in an interactive window, turn off visualization: `/vis/enable 0`
+
 ## "Quickstart" example
+For information on `simulation.config.file`, see `docs/settings-documentation.md`.
+
 
 An example CAD file set can be built by running `scripts/rectangular.py`.
 The script requires [cadquery](https://github.com/CadQuery/cadquery)
@@ -88,6 +159,8 @@ cd ../build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -jN # N is number of cores to use
 ln -s ../scripts/rectangular .
+
+# Before running this, modify `simulation.config.file` as you wish
 ./cadmesh-wrapper rectangular/rect_meta.json
 ```
 
@@ -111,52 +184,3 @@ If you want to save more data,
     you can add new methods to those classes,
     and other save points in the appropriate Geant action in
     `src/actions.*`.
-
-## Required libraries
-- [Geant4]() and an appropriate Qt version
-    - Read the [installation instructions](https://geant4-userdoc.web.cern.ch/UsersGuides/InstallationGuide/html/index.html).
-    - I recommend installing from source.
-    - Make sure multi-threading is enabled and Qt support is selected.
-    ```bash
-    # Example installation command
-    # (first, download the source and cd into the G4 directory)
-    mkdir build
-    cd build
-    cmake -DCMAKE_INSTALL_PREFIX="$HOME/g4_install" -DGEANT4_INSTALL_DATA=ON -DGEANT4_BUILD_MULTITHREADED=ON -DGEANT4_USE_QT=ON -DCMAKE_PREFIX_PATH=/usr/local/opt/qt5 ..
-    make -j4
-    sudo make install
-    ```
-- [CADMesh](https://github.com/christopherpoole/CADMesh/tree/master) and `tetgen`
-    - Can be installed like most c++ libraries:
-    ```bash
-    # Prereq: tetgen
-    # This is the current version in Dec 2024; might change
-    sudo apt update && sudo apt install libtet1.5-dev
-
-    # Actual installation
-    git clone https://github.com/christopherpoole/CADMesh.git
-    cd CADMesh
-    mkdir build
-    cd build
-    cmake ..
-    make -jN # N = number of cores you want to use
-    sudo make install
-    ```
-- [json](https://github.com/nlohmann/json)
-    - Can be installed like most c++ libraries:
-    ```bash
-    git clone https://github.com/nlohmann/json.git
-    cd json
-    mkdir build
-    cd build
-    cmake ..
-    make -jN # N = number of cores you want to use
-    sudo make install
-    ```
-- (if you want to run the example 3D shapes script) [CadQuery](https://github.com/CadQuery/cadquery)
-    ```bash
-    # Make a venv (or not) in Python 3.10, then
-    pip install --upgrade pip
-    pip instal cadquery numpy==1.24.0
-    ```
-
