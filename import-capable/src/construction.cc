@@ -9,7 +9,9 @@
 #include <G4NistManager.hh>
 #include <G4OpticalSurface.hh>
 #include <G4LogicalSkinSurface.hh>
+#include <G4LogicalBorderSurface.hh>
 #include <G4PVPlacement.hh>
+#include <G4PhysicalVolumeStore.hh>
 #include <G4RotationMatrix.hh>
 #include <G4SDManager.hh>
 #include <G4VisAttributes.hh>
@@ -76,7 +78,7 @@ void DetectorConstruction::importSolids() {
         auto fn = mdat["file"].get<std::string>();
         if (fn.find(".stl") != std::string::npos) {
             auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
-            importMesh(key_ + fn, mesh, mdat);
+            importMesh(key_, mesh, mdat);
         }
         else if (fn.find(".obj") != std::string::npos) {
             // Assume the .obj file describes the 
@@ -138,7 +140,7 @@ void DetectorConstruction::importMesh(
             }
         }
         auto* lv = new G4LogicalVolume(
-            solid, material, name + "_logical"
+            solid, material, name
         );
 
         // Give the shape a random color to differentiate it
@@ -156,13 +158,14 @@ void DetectorConstruction::importMesh(
         }
         lv->SetVisAttributes(va);
 
-        configureVolume(lv, mdat);
-
         (void) new G4PVPlacement(
             rotMat, G4ThreeVector(), lv,
-            name + "_placement", worldLogVol,
+            name, worldLogVol,
             false, 0, checkOverlaps
         );
+
+        // Some things need the physical volumes placed before being configured
+        configureVolume(lv, mdat);
     }
 }
 
@@ -183,6 +186,9 @@ void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const json &met)
     else if (type == "scintillator") {
         crLogVols.push_back(lv);
     }
+    else if (type == "roughener") {
+        configureRoughener(lv, met["other_volume"].get<std::string>());
+    }
     else if (type != "passive") {
         throw std::runtime_error{"Unknown geometry type: " + type};
     }
@@ -200,6 +206,28 @@ void DetectorConstruction::configureVolume(G4LogicalVolume* lv, const json &met)
         and readout from a polished face--we can get away
         with the Fresnel equation behavior.
     */
+}
+
+void DetectorConstruction::configureRoughener(G4LogicalVolume* lv, const std::string& other) {
+    // Attach a "roughening" surface between all crystals
+
+    // Get the physical volume placements from the "store"
+    auto name = lv->GetName();
+    auto pvs = G4PhysicalVolumeStore::GetInstance();
+    auto thisPlacement = pvs->GetVolume(name);
+    auto otherPlacement = pvs->GetVolume(other);
+    
+    // First, define the optical surface to use a rough LUT model
+    auto surface = new G4OpticalSurface(name + "-optical-surf");
+    surface->SetModel(DAVIS);
+    surface->SetFinish(Rough_LUT);
+    surface->SetType(dielectric_LUTDAVIS);
+
+    // Need to define interaction type into and out of scintillator
+    (void) new G4LogicalBorderSurface(
+        name + "-into-crystal", thisPlacement, otherPlacement, surface);
+    (void) new G4LogicalBorderSurface(
+        name + "-outof-crystal", otherPlacement, thisPlacement, surface);
 }
 
 void DetectorConstruction::ConstructSDandField() {
@@ -281,7 +309,7 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
         };
         // UV-enhanced ESR
         const auto reflectivities = std::vector<double>{
-            0.96, 0.96
+            0.99, 0.99
         };
 
         pt->AddProperty("REFLECTIVITY", refl_energies, reflectivities);

@@ -27,6 +27,7 @@ private:
     G4PVPlacement* makeWorld();
     void importSolids();
     void configureVolume(G4LogicalVolume*, const json&);
+    void configureRoughener(G4LogicalVolume*, const std::string&);
 
     void importMesh(
         const std::string& name,
