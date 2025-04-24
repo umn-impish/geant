@@ -1,0 +1,17 @@
+# Illuminate a circle uniformly with X-rays
+
+# Center the GPS source
+/gps/pos/centre 0 0 2 cm
+
+# Rectangle same size as rod
+/gps/pos/type Plane
+/gps/pos/shape Circle
+/gps/pos/radius 20 mm
+
+/gps/direction 0 0 -1
+
+/gps/particle gamma
+/gps/ene/mono 60 keV
+
+/run/printProgress 200
+/run/beamOn 5000

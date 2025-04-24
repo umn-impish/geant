@@ -1,6 +1,6 @@
 # Put a plane that's the same shape as our
 # beloved trapezoidal crystal and shoot some X-rays at
-# just the crystal, assuming a its corner is at (0, 0)
+# just the crystal, assuming one of its corners is at (0, 0)
 
 /gps/particle gamma
 
@@ -12,11 +12,7 @@
 /gps/pos/halfx 33 mm
 /gps/pos/halfy 16.5 mm
 
-# Flat distribution
-/gps/ene/type Lin
-/gps/ene/gradient 0
-/gps/ene/intercept 1
-/gps/ene/min 1 keV
-/gps/ene/max 300 keV
+/gps/ene/type Mono
+/gps/ene/mono 60 keV
 
-/run/beamOn 9000000
+/run/beamOn 5000

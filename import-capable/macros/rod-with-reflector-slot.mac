@@ -1,0 +1,27 @@
+/gps/particle opticalphoton
+
+# Put the GPS right at the slot in the reflector
+/gps/pos/centre -2.5 0 12.5 mm
+
+# Approximate the LED as a Lambert cosine law emitter
+# from a circle
+/gps/pos/shape Circle
+/gps/pos/type Plane
+/gps/pos/centre -2.5 0 12.5 mm
+/gps/pos/radius 2 mm
+/gps/ang/type cos
+
+# Orient it on the side of the crystal by rotating the (x, y) plane
+# the new (x', y') plane is aligned with (y, z) (i think?)
+/gps/pos/rot1 0 1 0
+/gps/pos/rot2 0 0 1
+
+/gps/polarization 1 0 0
+
+/gps/ene/type Mono
+/gps/ene/mono 3 eV
+
+# Simulate 10000 photons each run
+/gps/number 10000
+
+/run/beamOn 500

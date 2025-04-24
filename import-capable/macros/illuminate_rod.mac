@@ -1,0 +1,21 @@
+# Illuminate a rod uniformly with X-rays
+
+# Center the GPS source
+/gps/pos/centre 1 0 0
+
+# Rectangle same size as rod
+/gps/pos/type Plane
+/gps/pos/shape Rectangle
+/gps/pos/halfx 17.5 mm
+/gps/pos/halfy 2.5 mm
+
+# Rotate the plane to face the crystal
+/gps/pos/rot1 0 0 1
+/gps/pos/rot2 0 1 0
+/gps/direction -1 0 0
+
+/gps/particle gamma
+/gps/ene/mono 60 keV
+
+/run/printProgress 200
+/run/beamOn 1000
