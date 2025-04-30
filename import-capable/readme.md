@@ -10,7 +10,7 @@
 
     # after setting up your Python installation, do these steps
     cd scripts
-    uv pip instal wheel cadquery-ocp cadquery numpy==1.24.0 astropy numpy
+    uv pip install wheel cadquery-ocp cadquery numpy==1.24.0 astropy numpy
     ```
 - [Geant4]() and an appropriate Qt version
     - Read the [installation instructions](https://geant4-userdoc.web.cern.ch/UsersGuides/InstallationGuide/html/index.html).
