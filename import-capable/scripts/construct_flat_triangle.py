@@ -1,6 +1,8 @@
 """
-Construct a trapezoidal crystal, trapezoidal shell of a reflector,
+Construct a triangular crystal, triangular shell of a reflector,
 a thin optical pad, and a SiPM on the end, for Geant or pvtrace simulations.
+
+The readout face is flat
 """
 
 import cadquery as cq
@@ -64,7 +66,7 @@ if __name__ == "__main__":
         .translate((side, optical_pad_center + pad_depth/2 + sipm_depth/2, 0))
     )
 
-    direc = "triangle"
+    direc = "flat_triangle"
     os.makedirs(direc, exist_ok=True)
     cq.exporters.export(crystal, f"{direc}/crystal.stl", opt=dict(ascii=True))
     cq.exporters.export(shell, f"{direc}/esr_shell.stl", opt=dict(ascii=True))
