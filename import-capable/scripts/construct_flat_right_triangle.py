@@ -51,8 +51,8 @@ if __name__ == "__main__":
         .translate(
             (
                 # Move to the center of the crystal
-                side/2,
-                (optical_pad_center := -pad_depth/2),
+                side / 2,
+                (optical_pad_center := -pad_depth / 2),
                 0,
             )
         )
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     sipms = (
         cq.Workplane("XZ")
         .box(sipm_length, sipm_height, sipm_depth)
-        .translate((side/2, optical_pad_center - pad_depth/2 - sipm_depth/2, 0))
+        .translate((side / 2, optical_pad_center - pad_depth / 2 - sipm_depth / 2, 0))
     )
 
     direc = "flat_right_triangle"

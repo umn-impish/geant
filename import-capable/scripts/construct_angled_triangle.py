@@ -98,11 +98,7 @@ if __name__ == "__main__":
     strip = (
         cq.Workplane("XY")
         .box(strip_width, strip_length, strip_depth)
-        .translate((
-            side,
-            side,
-            thick * 1.2
-        ))
+        .translate((side, side, thick * 1.2))
     )
 
     folder = "angled_triangle"
@@ -113,45 +109,40 @@ if __name__ == "__main__":
     cq.exporters.export(sipms, f"{folder}/sipms.stl", opt=dict(ascii=True))
     cq.exporters.export(strip, f"{folder}/lead_strip.stl", opt=dict(ascii=True))
 
-    common = {
-        "scale": 1,
-        "translation": [0, 0, 0],
-        "euler_rotation": [0, 0, 0]
-    }
+    common = {"scale": 1, "translation": [0, 0, 0], "euler_rotation": [0, 0, 0]}
     # Extent along Z direction of largest face
     meta = {
         "crystal": {
             "file": f"{folder}/crystal.stl",
             "material": "lyso",
             "type": "scintillator",
-            **common
+            **common,
         },
         "esr": {
             "file": f"{folder}/esr_shell.stl",
             "material": "esr",
             "type": "specular_reflector",
-            **common
+            **common,
         },
         "opticalpad": {
             "file": f"{folder}/opticalpad.stl",
             "material": "pdms",
             "type": "passive",
-            **common
+            **common,
         },
         "sipm": {
             "file": f"{folder}/sipms.stl",
             "material": "G4_Si",
             "type": "optical_detector",
-            **common
+            **common,
         },
         "lead_strip": {
             "file": f"{folder}/lead_strip.stl",
             "material": "G4_W",
             "type": "passive",
-            **common
-        }
+            **common,
+        },
     }
 
-    with open(f'{folder}/meta.json', 'w') as f:
+    with open(f"{folder}/meta.json", "w") as f:
         f.write(json.dumps(meta))
-
