@@ -38,7 +38,7 @@ void GlobalConfigs::loadConfig(const std::string& fn)
     std::string line, key, type;
     while (std::getline(ifs, line)) {
         try {
-            static const char COMMENT_MARKER = '#';
+            static constexpr char COMMENT_MARKER = '#';
             if (line.size() == 0 || line[0] == COMMENT_MARKER)
                 continue;
 
