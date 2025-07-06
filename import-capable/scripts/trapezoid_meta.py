@@ -27,6 +27,12 @@ meta = {
         "type": "optical_detector",
         **common,
     },
+    "lead_sheet": {
+        "file": "trapezoid/lead_sheet.stl",
+        "material": "G4_Pb",
+        "type": "passive",
+        **common,
+    },
 }
 
 with open("trapezoid/meta.json", "w") as f:

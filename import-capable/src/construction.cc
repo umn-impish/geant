@@ -1,5 +1,6 @@
 #include <random>
 
+#include <configs.hh>
 #include <construction.hh>
 #include <detectors.hh>
 #include <materials.hh>
@@ -281,20 +282,24 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
     if (surf == nullptr) {
         surf = new G4OpticalSurface("specular-optical-surface");
         surf->SetModel(unified);
-        surf->SetType(dielectric_metal);
+        surf->SetType(dielectric_dielectric);
         surf->SetFinish(ground);
-        surf->SetSigmaAlpha(0.);
+        auto sigmaAlpha = GlobalConfigs::instance().configOption<double>("specular_sigma_alpha_deg");
+        surf->SetSigmaAlpha(sigmaAlpha * deg);
         auto* pt = new G4MaterialPropertiesTable();
 
+        // Values here have been tuned to match ESR experiments
+        // with LYSO crystals
         const std::unordered_map<
             const char*,
             const std::vector<G4double>
         > props = {
             {"TRANSMITTANCE", {0, 0}},
             {"EFFICIENCY", {0, 0}},
-            {"SPECULARSPIKECONSTANT", {0, 0}},
-            {"SPECULARLOBECONSTANT", {0, 0}},
+            {"SPECULARSPIKECONSTANT", {0.9, 0.9}},
+            {"SPECULARLOBECONSTANT", {0.05, 0.05}},
             {"BACKSCATTERCONSTANT", {0, 0}},
+            {"REFLECTIVITY", {0.99, 0.99}}
         };
 
         // Apply across whole optical photon range
@@ -302,17 +307,10 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
         for (const auto& [name, vals] : props) {
             pt->AddProperty(name, energies, vals);
         }
-
-        // The reflectivity of ESR is more complicated
-        const auto refl_energies = std::vector<double>{
-            0.1*eV, 8*eV
-        };
         // UV-enhanced ESR
         const auto reflectivities = std::vector<double>{
             0.99, 0.99
         };
-
-        pt->AddProperty("REFLECTIVITY", refl_energies, reflectivities);
 
         surf->SetMaterialPropertiesTable(pt);
     }
