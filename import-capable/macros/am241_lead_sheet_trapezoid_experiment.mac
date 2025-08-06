@@ -1,0 +1,16 @@
+# Put a plane that's the same shape as our
+# beloved trapezoidal crystal and shoot some X-rays at
+# just the crystal, assuming one of its corners is at (0, 0)
+
+/gps/particle gamma
+
+# Plane parallel to the trapezoid
+# (only 75% of X-rays will impinge)
+/gps/pos/centre 33 16.5 40 mm
+/gps/pos/type Point
+
+/gps/ene/type Mono
+/gps/ene/mono 60 keV
+/gps/ang/type iso
+
+/run/beamOn 100000
