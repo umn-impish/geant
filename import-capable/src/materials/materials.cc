@@ -457,7 +457,6 @@ void makePdms()
 
     auto* pdmsPt = new G4MaterialPropertiesTable;
     pdmsPt->AddProperty(kREFR_IDX, PDMS_REFR_IDX_ENERGIES, PDMS_REFR_IDXS, useSpline);
-    pdmsPt->AddProperty("TRANSMITTANCE", {0.1*eV, 8*eV}, {1., 1.}, useSpline);
     pdms->SetMaterialPropertiesTable(pdmsPt);
 }
 
