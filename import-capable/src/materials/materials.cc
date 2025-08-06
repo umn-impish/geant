@@ -1,6 +1,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <materials.hh>
+#include <configs.hh>
 
 // forward declare here; don't put in header
 namespace Materials {
@@ -235,7 +236,12 @@ void makeLyso()
     // # of photons emitted = RESOLUTION_SCALE * sqrt(mean # of photons)
     // take to be 1 because ... idk
     mpt->AddConstProperty(kRESOLUTION_SCALE, 1);
-    mpt->AddProperty(kABSORPTION_LEN, Lyso::ABS_LEN_ENERGIES, Lyso::ABS_LEN, useSpline);
+    auto cfg = GlobalConfigs::instance();
+    auto abslen = std::vector<double>(
+        Lyso::ABS_LEN_ENERGIES.size(),
+        cfg.configOption<double>("lyso-attenuation-length") * cm
+    );
+    mpt->AddProperty(kABSORPTION_LEN, Lyso::ABS_LEN_ENERGIES, abslen, useSpline);
     // skip optical Rayleigh scattering (not important)
     // skip Mie scattering (doesn't apply)
 
@@ -395,8 +401,6 @@ void makeSilicon()
     simpt->AddProperty(kREFLECTIVITY, SI_DET_EFF_ENERGIES, refl, useSpline);
     simpt->AddProperty(kTRANSMITTANCE, SI_DET_EFF_ENERGIES, SI_TRANSMITTANCE, useSpline);
     simpt->AddProperty(kREFR_IDX, SI_REFR_IDX_ENERGY, SI_REFR_IDX_REAL, useSpline);
-    simpt->AddProperty(kREFR_IDX_REAL, SI_REFR_IDX_ENERGY, SI_REFR_IDX_REAL, useSpline);
-    simpt->AddProperty(kREFR_IDX_IMAG, SI_REFR_IDX_ENERGY, SI_REFR_IDX_IMAG, useSpline);
 
     si->SetMaterialPropertiesTable(simpt);
 }
@@ -453,6 +457,7 @@ void makePdms()
 
     auto* pdmsPt = new G4MaterialPropertiesTable;
     pdmsPt->AddProperty(kREFR_IDX, PDMS_REFR_IDX_ENERGIES, PDMS_REFR_IDXS, useSpline);
+    pdmsPt->AddProperty("TRANSMITTANCE", {0.1*eV, 8*eV}, {1., 1.}, useSpline);
     pdms->SetMaterialPropertiesTable(pdmsPt);
 }
 
@@ -486,7 +491,7 @@ void makeTungsten3dFilament() {
     pla->AddMaterial(o, 0.44);
 
     auto* tungstenImbued = new G4Material(
-        "tungsten-pla-filament", 6.9 * g/cm3, 2,
+        "tungsten-pla-filament", 6.6 * g/cm3, 2,
         kStateSolid, SATELLITE_TEMP, VACUUM_PRESSURE);
 
     // 8% PLA, 92% W, by mass
