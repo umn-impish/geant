@@ -91,22 +91,8 @@ sipms = (
     .translate((0, -sipm_delta, -sipm_delta))
 )
 
-# Let's put a lead sheet in front of the plate
-sheet_width = 80
-sheet_height = 55
-sheet_depth = 0.45
-bottom_loc = 0
-top_loc = 35
-loc = bottom_loc
-sheet = (
-    cq.Workplane("XY")
-    .box(sheet_width, sheet_height, sheet_depth)
-    .translate((35, loc, 3))
-)
-
 os.makedirs("trapezoid", exist_ok=True)
 cq.exporters.export(crystal, "trapezoid/crystal.stl", opt=dict(ascii=True))
 cq.exporters.export(shell, "trapezoid/esr_shell.stl", opt=dict(ascii=True))
 cq.exporters.export(optical_pad, "trapezoid/opticalpad.stl", opt=dict(ascii=True))
 cq.exporters.export(sipms, "trapezoid/sipms.stl", opt=dict(ascii=True))
-cq.exporters.export(sheet, "trapezoid/lead_sheet.stl", opt=dict(ascii=True))
