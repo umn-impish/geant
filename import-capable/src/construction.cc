@@ -55,7 +55,7 @@ DetectorConstruction::makeWorld() {
     G4VisAttributes va;
 
     G4Material* vac = G4Material::GetMaterial("vacuum");
-    const G4double worldSize = 50*cm;
+    const G4double worldSize = 200*cm;
     auto* worldBox =    
     new G4Box("World",
         0.5*worldSize, 0.5*worldSize, 0.5*worldSize);
@@ -282,7 +282,7 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
     if (surf == nullptr) {
         surf = new G4OpticalSurface("specular-optical-surface");
         surf->SetModel(unified);
-        surf->SetType(dielectric_dielectric);
+        surf->SetType(dielectric_metal);
         surf->SetFinish(ground);
         auto sigmaAlpha = GlobalConfigs::instance().configOption<double>("specular_sigma_alpha_deg");
         surf->SetSigmaAlpha(sigmaAlpha * deg);
@@ -296,8 +296,8 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
         > props = {
             {"TRANSMITTANCE", {0, 0}},
             {"EFFICIENCY", {0, 0}},
-            {"SPECULARSPIKECONSTANT", {0.9, 0.9}},
-            {"SPECULARLOBECONSTANT", {0.05, 0.05}},
+            {"SPECULARSPIKECONSTANT", {0.05, 0.05}},
+            {"SPECULARLOBECONSTANT", {0.95, 0.95}},
             {"BACKSCATTERCONSTANT", {0, 0}},
             {"REFLECTIVITY", {0.99, 0.99}}
         };
