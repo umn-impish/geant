@@ -1,16 +1,19 @@
 # prefix the folders saved
-save-prefix string no-prefix
+save-prefix string save-pfx
 
 # enable-scintillation 0
 save-each-cryst-hit-energy bool 0
-save-scintillator-positions bool 0
-save-sipm-positions bool 0
+save-scintillator-positions bool 1
+save-sipm-positions bool 1
 save-sipm-energies bool 0
 
 
 # unit = nanosecond
-scintillator-time-const double 50
-enable-scintillation bool 0
+scintillator-time-const double 30
+enable-scintillation bool 1
+
+lyso-attenuation-length double 50
+specular-sigma-alpha-deg double 2
 
 # Geometric configurations are set via JSON
 # metadata which is passed to DetectorConstruction

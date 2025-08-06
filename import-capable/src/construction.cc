@@ -284,9 +284,8 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
         surf->SetModel(unified);
         surf->SetType(dielectric_metal);
         surf->SetFinish(ground);
-        auto sigmaAlpha = GlobalConfigs::instance().configOption<double>("specular_sigma_alpha_deg");
+        auto sigmaAlpha = GlobalConfigs::instance().configOption<double>("specular-sigma-alpha-deg");
         surf->SetSigmaAlpha(sigmaAlpha * deg);
-        auto* pt = new G4MaterialPropertiesTable();
 
         // Values here have been tuned to match ESR experiments
         // with LYSO crystals
@@ -296,13 +295,17 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
         > props = {
             {"TRANSMITTANCE", {0, 0}},
             {"EFFICIENCY", {0, 0}},
-            {"SPECULARSPIKECONSTANT", {0.05, 0.05}},
-            {"SPECULARLOBECONSTANT", {0.95, 0.95}},
+            // With small sigma_alpha (as is case of ESR),
+            // this gives close to experiment;
+            // see doi 10.1109/TNS.2008.2001408
+            {"SPECULARLOBECONSTANT", {0.90, 0.90}},
+            {"SPECULARSPIKECONSTANT", {0.1, 0.1}},
             {"BACKSCATTERCONSTANT", {0, 0}},
             {"REFLECTIVITY", {0.99, 0.99}}
         };
 
         // Apply across whole optical photon range
+        auto* pt = new G4MaterialPropertiesTable();
         std::vector<G4double> energies = {1e-3*eV, 6*eV};
         for (const auto& [name, vals] : props) {
             pt->AddProperty(name, energies, vals);
