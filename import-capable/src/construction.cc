@@ -74,30 +74,13 @@ DetectorConstruction::makeWorld() {
 void DetectorConstruction::importSolids() {
     auto meta = json::parse(std::ifstream{meta_fn});
 
-    const std::string stl = "stl", obj = "obj";
     for (auto& [key_, mdat] : meta.items()) {
         auto fn = mdat["file"].get<std::string>();
-        if (fn.find(".stl") != std::string::npos) {
-            auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
-            importMesh(key_, mesh, mdat);
+        if (fn.find(".stl") == std::string::npos) {
+            throw std::runtime_error("Only supports .stl files");
         }
-        else if (fn.find(".obj") != std::string::npos) {
-            // Assume the .obj file describes the 
-            // entire detector geometry (all components)
-            auto mesh = CADMesh::TessellatedMesh::FromOBJ(
-                mdat["file"].get<std::string>());
-            auto solids = mesh->GetSolids();
-
-            for (auto s : solids) {
-                auto name = s->GetName();
-                std::cout << "PART NAME IS " << name << std::endl;
-                auto cur_meta = mdat[name];
-                importMesh(key_ + name, mesh, cur_meta);
-            }
-        }
-        else {
-            throw std::runtime_error{"Unrecognized file format: " + fn};
-        }
+        auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
+        importMesh(key_, mesh, mdat);
     }
 }
 
