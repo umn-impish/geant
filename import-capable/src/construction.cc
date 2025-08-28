@@ -1,5 +1,6 @@
 #include <random>
 
+#include <configs.hh>
 #include <construction.hh>
 #include <detectors.hh>
 #include <materials.hh>
@@ -54,7 +55,7 @@ DetectorConstruction::makeWorld() {
     G4VisAttributes va;
 
     G4Material* vac = G4Material::GetMaterial("vacuum");
-    const G4double worldSize = 50*cm;
+    const G4double worldSize = 200*cm;
     auto* worldBox =    
     new G4Box("World",
         0.5*worldSize, 0.5*worldSize, 0.5*worldSize);
@@ -73,30 +74,13 @@ DetectorConstruction::makeWorld() {
 void DetectorConstruction::importSolids() {
     auto meta = json::parse(std::ifstream{meta_fn});
 
-    const std::string stl = "stl", obj = "obj";
     for (auto& [key_, mdat] : meta.items()) {
         auto fn = mdat["file"].get<std::string>();
-        if (fn.find(".stl") != std::string::npos) {
-            auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
-            importMesh(key_, mesh, mdat);
+        if (fn.find(".stl") == std::string::npos) {
+            throw std::runtime_error("Only supports .stl files");
         }
-        else if (fn.find(".obj") != std::string::npos) {
-            // Assume the .obj file describes the 
-            // entire detector geometry (all components)
-            auto mesh = CADMesh::TessellatedMesh::FromOBJ(
-                mdat["file"].get<std::string>());
-            auto solids = mesh->GetSolids();
-
-            for (auto s : solids) {
-                auto name = s->GetName();
-                std::cout << "PART NAME IS " << name << std::endl;
-                auto cur_meta = mdat[name];
-                importMesh(key_ + name, mesh, cur_meta);
-            }
-        }
-        else {
-            throw std::runtime_error{"Unrecognized file format: " + fn};
-        }
+        auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
+        importMesh(key_, mesh, mdat);
     }
 }
 
@@ -283,36 +267,36 @@ void attachEsrOpticalSurface(G4LogicalVolume* lv) {
         surf->SetModel(unified);
         surf->SetType(dielectric_metal);
         surf->SetFinish(ground);
-        surf->SetSigmaAlpha(0.);
-        auto* pt = new G4MaterialPropertiesTable();
+        auto sigmaAlpha = GlobalConfigs::instance().configOption<double>("specular-sigma-alpha-deg");
+        surf->SetSigmaAlpha(sigmaAlpha * deg);
 
+        // Values here have been tuned to match ESR experiments
+        // with LYSO crystals
         const std::unordered_map<
             const char*,
             const std::vector<G4double>
         > props = {
             {"TRANSMITTANCE", {0, 0}},
             {"EFFICIENCY", {0, 0}},
-            {"SPECULARSPIKECONSTANT", {0, 0}},
-            {"SPECULARLOBECONSTANT", {0, 0}},
+            // With small sigma_alpha (as is case of ESR),
+            // this gives close to experiment;
+            // see doi 10.1109/TNS.2008.2001408
+            {"SPECULARLOBECONSTANT", {0.90, 0.90}},
+            {"SPECULARSPIKECONSTANT", {0.1, 0.1}},
             {"BACKSCATTERCONSTANT", {0, 0}},
+            {"REFLECTIVITY", {0.99, 0.99}}
         };
 
         // Apply across whole optical photon range
+        auto* pt = new G4MaterialPropertiesTable();
         std::vector<G4double> energies = {1e-3*eV, 6*eV};
         for (const auto& [name, vals] : props) {
             pt->AddProperty(name, energies, vals);
         }
-
-        // The reflectivity of ESR is more complicated
-        const auto refl_energies = std::vector<double>{
-            0.1*eV, 8*eV
-        };
         // UV-enhanced ESR
         const auto reflectivities = std::vector<double>{
             0.99, 0.99
         };
-
-        pt->AddProperty("REFLECTIVITY", refl_energies, reflectivities);
 
         surf->SetMaterialPropertiesTable(pt);
     }

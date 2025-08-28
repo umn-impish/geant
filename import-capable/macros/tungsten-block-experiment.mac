@@ -1,0 +1,15 @@
+/gps/particle gamma
+
+/gps/pos/centre 20.3 0 0 cm
+/gps/pos/type Point
+
+/gps/ang/type iso
+# The rod is thin
+/gps/ang/minphi -1 deg
+/gps/ang/maxphi 1 deg
+# But pretty tall
+/gps/ang/mintheta 84 deg
+/gps/ang/maxtheta 96 deg
+
+/gps/ene/type Mono
+/gps/ene/mono 60 keV

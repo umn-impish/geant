@@ -214,12 +214,7 @@ void SteppingAction::processOptical(const G4Step* step)
             case Transmission:
             case FresnelRefraction:
             case FresnelReflection:
-                break;
             case NoRINDEX:
-                G4cout << "NoRINDEX: " << G4endl
-                       << "pre vol" << preName << G4endl
-                       << "post vol" << postName << G4endl;
-                break;
             default:
                 break;
         }
