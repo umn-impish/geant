@@ -1,0 +1,15 @@
+#!/bin/bash
+
+cmesh_wrapper="$1"
+direc="$2"
+
+files=$(ls -1 "$direc")
+for f in $files; do
+    if [ ! -d "$direc/$f" ]; then
+        echo "skipping $f"
+        continue
+    fi
+    
+    echo "running $direc/$f"
+    "./$cmesh_wrapper" "$direc/$f/meta.json" "$direc/$f/source_macro.mac"
+done

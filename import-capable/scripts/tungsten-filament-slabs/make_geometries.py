@@ -30,7 +30,6 @@ detector_rad = (37 / 2)
 detector_thk = 5
 
 source_rad = (3 / 2)
-source_thk = 1 / 1000
 
 # Sum of: space in crystal housing,
 # 3D printed compression cap,
@@ -49,6 +48,20 @@ def save(obj, fn):
 
 save(crystal, 'crystal.stl')
 
+num_gammas = 1000000
+macro_source = f'''/gps/particle gamma
+/gps/ene/mono 81 keV
+/gps/ang/type iso
+/gps/pos/type Plane
+
+# Shape of the radiation source
+/gps/pos/shape Circle
+/gps/pos/radius {source_rad} mm
+
+/gps/pos/centre 0 0 {{zloc}} mm
+/run/printProgress {num_gammas // 100}
+/run/beamOn {num_gammas}'''
+
 common_meta = {
     "scale": 1,
     "translation": [0, 0, 0],
@@ -57,12 +70,10 @@ common_meta = {
 for ft in filament_thicks:
     filament_slab = (
         cq.Workplane("XY")
-        .translate((0, 0, space_above_crystal))
         .rect(filament_side, filament_side)
         .extrude(ft)
+        .translate((0, 0, space_above_crystal))
     )
-    # Use this to generate an appropriate macro file
-    source_z_loc = space_above_crystal + ft
 
     os.makedirs(direc_name := f'{ft}-slab', exist_ok=True)
     save(filament_slab, fil_fn := f'{direc_name}/slab.stl')
@@ -82,3 +93,9 @@ for ft in filament_thicks:
     }
     with open(f"{direc_name}/meta.json", "w") as f:
         json.dump(meta, f)
+
+    # Use this to generate an appropriate macro file
+    # Offset a bit from the tungsten
+    source_z_loc = space_above_crystal + ft + 2
+    with open(f"{direc_name}/source_macro.mac", "w") as f:
+        print(macro_source.format(zloc=source_z_loc), file=f)
