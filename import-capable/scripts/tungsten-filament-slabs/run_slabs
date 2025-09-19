@@ -1,7 +1,12 @@
 #!/bin/bash
 
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <cadmesh wrapper path>"
+    exit 1
+fi
+
 cmesh_wrapper="$1"
-direc="$2"
+direc="tungsten-filament-slabs"
 
 files=$(ls -1 "$direc")
 for f in $files; do
@@ -11,5 +16,17 @@ for f in $files; do
     fi
     
     echo "running $direc/$f"
-    "./$cmesh_wrapper" "$direc/$f/meta.json" "$direc/$f/source_macro.mac"
+    "./$cmesh_wrapper" "$direc/$f/meta.json" "$direc/$f/source_macro.mac" > /dev/null
+
+    if [ $? -ne 0 ]; then
+        echo 'Run failed. No bueno.'
+        exit 1
+    fi
+
+    # rename the folder properly
+    pushd "$(dirname "$cmesh_wrapper")/data-out"
+        fold=$(ls -t | head -n1)
+        echo $fold $f
+        [ -e $fold ] && mv "$fold" "$f"
+    popd
 done
