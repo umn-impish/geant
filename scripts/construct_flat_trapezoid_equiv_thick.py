@@ -8,7 +8,7 @@ import numpy as np
 import json
 import os
 
-thick = 4 * np.sqrt(2)
+thick = 4
 side = 33
 vertices = ((0, 0), (0, side), (2 * side, side), (side, 0))
 
@@ -83,8 +83,8 @@ if __name__ == "__main__":
         },
         "esr": {
             "file": f"{direc}/esr_shell.stl",
-            "material": "esr",
-            "type": "specular_reflector",
+            "material": "G4_TEFLON",
+            "type": "lambertian_reflector",
             "color": [0, 0, 1, 0.1],
             **common,
         },
