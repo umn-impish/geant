@@ -134,7 +134,7 @@ void DetectorConstruction::importMesh(
                 dist(en),
                 dist(en),
                 dist(en),
-                0.4
+                0.8
             );
         } else {
             auto col = mdat["color"].get<std::vector<double> >();

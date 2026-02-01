@@ -1,6 +1,0 @@
-*.stl
-__pycache__
-.vscode
-analysis
-macros/response_matrix/srm.mac
-scripts/trapezoid
