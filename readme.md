@@ -1,4 +1,4 @@
-# Simple way to import shapes into G4 for optical simulations
+# Simple way to import geometries into G4
 
 ## Required libraries
 - (if you want to run the example 3D shapes script) [CadQuery](https://github.com/CadQuery/cadquery)
