@@ -18,7 +18,7 @@ if __name__ == "__main__":
     )
 
     # Make a box for the air gap which we will base other stuff on
-    air_gap = 10 / 1000
+    air_gap = 5 / 1000
     t = air_gap
     gap_vertices = (
         (-t, -t),
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     direc = "flatazoid"
     os.makedirs(direc, exist_ok=True)
     cq.exporters.export(crystal, f"{direc}/crystal.stl", opt=dict(ascii=True))
-    cq.exporters.export(shell, f"{direc}/esr_shell.stl", opt=dict(ascii=True))
+    cq.exporters.export(shell, f"{direc}/reflector_shell.stl", opt=dict(ascii=True))
     cq.exporters.export(optical_pad, f"{direc}/opticalpad.stl", opt=dict(ascii=True))
     cq.exporters.export(sipms, f"{direc}/sipms.stl", opt=dict(ascii=True))
 
@@ -81,8 +81,8 @@ if __name__ == "__main__":
             "color": [0, 0.5, 0, 0.1],
             **common,
         },
-        "esr": {
-            "file": f"{direc}/esr_shell.stl",
+        "reflector": {
+            "file": f"{direc}/reflector_shell.stl",
             "material": "G4_TEFLON",
             "type": "lambertian_reflector",
             "color": [0, 0, 1, 0.1],

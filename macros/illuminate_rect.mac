@@ -6,8 +6,8 @@
 # Rectangle same size as rod
 /gps/pos/type Plane
 /gps/pos/shape Rectangle
-/gps/pos/halfy 20 mm
-/gps/pos/halfx 20 mm
+/gps/pos/halfx 17 mm
+/gps/pos/halfy 33 mm
 
 # Rotate the plane to face the crystal
 /gps/pos/rot1 0 0 1
@@ -18,4 +18,4 @@
 /gps/ene/mono 60 keV
 
 /run/printProgress 200
-/run/beamOn 5000
+# /run/beamOn 5000

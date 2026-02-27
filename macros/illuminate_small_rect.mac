@@ -6,8 +6,8 @@
 # Rectangle same size as rod
 /gps/pos/type Plane
 /gps/pos/shape Rectangle
-/gps/pos/halfy 5 mm
-/gps/pos/halfx 5 mm
+/gps/pos/halfy 10 mm
+/gps/pos/halfx 10 mm
 
 /gps/direction 0 0 -1
 
@@ -15,4 +15,4 @@
 /gps/ene/mono 60 keV
 
 /run/printProgress 200
-/run/beamOn 5000
+# /run/beamOn 5000

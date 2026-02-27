@@ -30,16 +30,16 @@ _define_ your photon model bins.
 file_name = 'srm.mac'
 
 # Energy parameters: start, end, step
-ea = 0.02
-eb = 20
-de = 0.05
+ea = 1
+eb = 200
+de = 0.5
 
 # How many runs per energy range
-num_runs = 1000000
+num_runs = 100000
 
 # Set these if you'd like
 # (in cm)
-x_center, y_center, z_center = 0, 0, 10
+x_center, y_center, z_center = 0, 0, 1
 
 # Orient the momentum direction how you'd like
 # The easiest might be along -Z (how this
@@ -49,7 +49,8 @@ px, py, pz = 0, 0, -1
 # Define the size of the plane in mm
 # 8mm = large enough radius for X-123 detector head
 # Need larger for other geometries
-radius = 16 / 2
+# radius = 16 / 2
+half_side = 10
 
 def write_macro():
     # We set up a gamma plane source in front of our detector
@@ -57,8 +58,9 @@ def write_macro():
 
 /gps/pos/centre {x_center} {y_center} {z_center} cm
 /gps/pos/type Plane
-/gps/pos/shape Circle
-/gps/pos/radius {radius} mm
+/gps/pos/shape Square
+/gps/pos/halfx {half_side} mm
+/gps/pos/halfy {half_side} mm
 
 # Set particle momentum direction to be towards
 # the active volume (defined by the user)

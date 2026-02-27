@@ -27,7 +27,8 @@ import sipms
 # just a box for now
 # z-axis is oriented along the
 # X-ray arrival direction
-crystal_dims = (40, 5, 40)
+# crystal_dims = (66, 33, 5)
+crystal_dims = (66, 4, 33)
 
 crystal = cq.Workplane("front").box(*crystal_dims)
 
@@ -36,7 +37,7 @@ crystal = cq.Workplane("front").box(*crystal_dims)
 # crystal, with a small air gap
 refl_thick = 0.05
 # air gap between reflector and crytsal
-air_gap = 0.001
+air_gap = 5 / 1000
 refl_dims = (
     # Need factor of 2 because it's on both sides
     crystal_dims[0] + air_gap + 2 * refl_thick,
@@ -46,9 +47,8 @@ refl_dims = (
 )
 reflector = cq.Workplane("front").box(*refl_dims).faces("|Z and -Z").shell(refl_thick)
 
-ret = sipms.make_sipms_pad(*crystal_dims[:2])
-optical_readout = ret["sipms"]
-pad = ret["pad"]
+pad = sipms.make_sipms_pad(68, 6)["pad"]
+optical_readout = sipms.make_sipms_pad(70, 7)["sipms"]
 
 output_dir = "rectangular"
 os.makedirs(output_dir, exist_ok=True)
@@ -78,13 +78,13 @@ def generate_meta(fn, mat, type_, scale=1, trans=(0, 0, 0), rot=(0, 0, 0)):
 meta = {
     "crystal": generate_meta(
         fn=save_to("crystal.stl"),
-        mat="lyso",
+        mat="yap",
         type_="scintillator",
     ),
     "reflector": generate_meta(
         fn=save_to("reflector.stl"),
-        mat="esr",
-        type_="specular_reflector",
+        mat="G4_TEFLON",
+        type_="lambertian_reflector",
         trans=(0, 0, refl_thick + air_gap),
     ),
     "pad": generate_meta(
