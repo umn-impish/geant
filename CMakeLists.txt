@@ -8,13 +8,22 @@ find_package(Geant4 REQUIRED ui_all vis_all)
 message(${Geant4_USE_FILE})
 include(${Geant4_USE_FILE})
 
+add_subdirectory(extern)
 add_subdirectory(src)
 
-find_package(nlohmann_json REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.12.0
+)
+FetchContent_MakeAvailable(nlohmann_json)
+
 target_link_libraries(
     cadmesh-wrapper
     ${Geant4_LIBRARIES}
-    tet
+    tetgen
     nlohmann_json::nlohmann_json
 )
 
