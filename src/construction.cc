@@ -49,9 +49,12 @@ G4VPhysicalVolume *DetectorConstruction::Construct() {
 G4PVPlacement *DetectorConstruction::makeWorld() {
   G4VisAttributes va;
 
+  auto gcf = GlobalConfigs::instance();
   G4Material *vac = G4Material::GetMaterial("vacuum");
   // const G4double worldSize = 100 * km;
-  auto *worldBox = new G4Box("World", 50 * km, 50 * km, 100 * km);
+  auto *worldBox = new G4Box("World", gcf.configOption<double>("world-x") * mm,
+                             gcf.configOption<double>("world-y") * mm,
+                             gcf.configOption<double>("world-z") * mm);
 
   worldLogVol = new G4LogicalVolume(worldBox, vac, "World");
   va.SetColor(1, 1, 1, 0.05);

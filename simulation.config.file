@@ -13,5 +13,10 @@ enable-scintillation bool 0
 lyso-attenuation-length double 50
 specular-sigma-alpha-deg double 2
 
+# World volume parameters (in units of mm, aka native G4 units)
+world-x double 100
+world-y double 1e2
+world-z double 100
+
 # Geometric configurations are set via JSON
 # metadata which is passed to DetectorConstruction
