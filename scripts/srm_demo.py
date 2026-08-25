@@ -45,7 +45,7 @@ meta = {
         "scale": 1,
         "translation": [0, 0, 0],
         "euler_rotation": [0, 0, 0],
-        "color": [1, 0, 0, 0.5],
+        "color": [0, 1, 0, 0.5],
     },
 }
 

@@ -27,7 +27,7 @@ _define_ your photon model bins.
 '''
 
 # the file name to output
-file_name = 'srm.mac'
+file_name = 'demo_srm.mac'
 
 # Energy parameters: start, end, step
 ea = 1
@@ -49,7 +49,6 @@ px, py, pz = 0, 0, -1
 # Define the size of the plane in mm
 # 8mm = large enough radius for X-123 detector head
 # Need larger for other geometries
-# radius = 16 / 2
 half_side = 10
 
 def write_macro():

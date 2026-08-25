@@ -1,7 +1,6 @@
 # prefix the folders saved
-save-prefix string foxsi4-attenuator
+save-prefix string response-matrix-demo
 
-# enable-scintillation 0
 save-each-cryst-hit-energy bool 0
 save-scintillator-positions bool 0
 save-sipm-positions bool 0
