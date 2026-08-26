@@ -25,6 +25,7 @@ private:
   std::string meta_fn;
   std::vector<G4LogicalVolume *> siLogVols;
   std::vector<G4LogicalVolume *> crLogVols;
+  std::vector<G4LogicalVolume *> perfectLogVols;
   G4LogicalVolume *worldLogVol;
   G4PVPlacement *makeWorld();
   void importSolids();

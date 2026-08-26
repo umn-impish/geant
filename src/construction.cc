@@ -31,7 +31,7 @@ DetectorConstruction::DetectorConstruction(std::string meta_fn)
       // JSON array.
       // For some reason, json::parse parses the array to
       // a nested array(?) so we only want the first element.
-      meta_fn{meta_fn}, siLogVols{}, crLogVols{} {
+      meta_fn{meta_fn}, siLogVols{}, crLogVols{}, perfectLogVols{} {
   Materials::makeMaterials();
 }
 
@@ -153,6 +153,8 @@ void DetectorConstruction::configureVolume(G4LogicalVolume *lv,
     crLogVols.push_back(lv);
   } else if (type == "roughener") {
     configureRoughener(lv, met["other_volume"].get<std::string>());
+  } else if (type == "perfect_detector") {
+    perfectLogVols.push_back(lv);
   } else if (type != "passive") {
     throw std::runtime_error{"Unknown geometry type: " + type};
   }
@@ -206,6 +208,12 @@ void DetectorConstruction::ConstructSDandField() {
   G4SDManager::GetSDMpointer()->AddNewDetector(cd);
   for (auto lv : crLogVols) {
     lv->SetSensitiveDetector(cd);
+  }
+
+  auto *pd = new PerfectSensitiveDetector("im literally perfect");
+  G4SDManager::GetSDMpointer()->AddNewDetector(pd);
+  for (auto lv : perfectLogVols) {
+    lv->SetSensitiveDetector(pd);
   }
 }
 

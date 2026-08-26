@@ -12,29 +12,43 @@ template <class T> class G4THitsCollection;
 
 class SiSensitiveDetector : public G4VSensitiveDetector {
 public:
-    SiSensitiveDetector(const G4String& detectorName);
-    ~SiSensitiveDetector();
+  SiSensitiveDetector(const G4String &detectorName);
+  ~SiSensitiveDetector();
 
-    void Initialize(G4HCofThisEvent* hcote) override;
-    G4bool ProcessHits(G4Step* step, G4TouchableHistory*) override;
-    void processOptical(const G4Step* step);
+  void Initialize(G4HCofThisEvent *hcote) override;
+  G4bool ProcessHits(G4Step *step, G4TouchableHistory *) override;
+  void processOptical(const G4Step *step);
+
 private:
-    G4String thisCollectionName;
-    G4THitsCollection<VirtualHit>* hitsCollection;
-    G4int hitsCollectionId;
+  G4String thisCollectionName;
+  G4THitsCollection<VirtualHit> *hitsCollection;
+  G4int hitsCollectionId;
 };
 
-class CrystalSensitiveDetector : public G4VSensitiveDetector
-{
-    public:
-        CrystalSensitiveDetector(const G4String& detectorName);
-        ~CrystalSensitiveDetector();
+class CrystalSensitiveDetector : public G4VSensitiveDetector {
+public:
+  CrystalSensitiveDetector(const G4String &detectorName);
+  ~CrystalSensitiveDetector();
 
-        void Initialize(G4HCofThisEvent* hc) override;
-        G4bool ProcessHits(G4Step* step, G4TouchableHistory*) override;
-        
-    private:
-        G4String thisCollectionName; 
-        G4THitsCollection<VirtualHit>* hitsCollection;
-        G4int hitsCollectionId;
+  void Initialize(G4HCofThisEvent *hc) override;
+  G4bool ProcessHits(G4Step *step, G4TouchableHistory *) override;
+
+private:
+  G4String thisCollectionName;
+  G4THitsCollection<VirtualHit> *hitsCollection;
+  G4int hitsCollectionId;
+};
+
+class PerfectSensitiveDetector : public G4VSensitiveDetector {
+public:
+  PerfectSensitiveDetector(const G4String &detectorName);
+  ~PerfectSensitiveDetector() = default;
+
+  void Initialize(G4HCofThisEvent *hc) override;
+  G4bool ProcessHits(G4Step *step, G4TouchableHistory *) override;
+
+private:
+  G4String thisCollectionName;
+  G4THitsCollection<VirtualHit> *hitsCollection;
+  G4int hitsCollectionId;
 };
