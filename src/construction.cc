@@ -18,6 +18,7 @@
 #include <G4RotationMatrix.hh>
 #include <G4SDManager.hh>
 #include <G4VisAttributes.hh>
+#include <stdexcept>
 
 static constexpr bool checkOverlaps = true;
 static G4OpticalSurface *siOpticalSurface();
@@ -69,72 +70,95 @@ void DetectorConstruction::importSolids() {
   auto meta = json::parse(std::ifstream{meta_fn});
 
   for (auto &[key_, mdat] : meta.items()) {
-    auto fn = mdat["file"].get<std::string>();
-    if (fn.find(".stl") == std::string::npos) {
-      throw std::runtime_error("Only supports .stl files");
+    G4VSolid *solid{nullptr};
+
+    // Specialize if we need to import a primitive type
+    if (mdat.contains("primitive_type")) {
+      solid = importPrimitive(key_, mdat);
+    } else if (mdat.contains("file")) {
+      auto fn = mdat["file"].get<std::string>();
+      if (fn.find(".stl") == std::string::npos) {
+        throw std::runtime_error("Only supports .stl files");
+      }
+      auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
+      // scale from whatever unit in file to mm (Geant native units)
+      mesh->SetScale(mdat["scale"].get<double>());
+
+      for (auto s : mesh->GetSolids()) {
+        if (s->GetName() == key_) {
+          solid = s;
+          break;
+        }
+      }
     }
-    auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
-    importMesh(key_, mesh, mdat);
+    if (solid == nullptr) {
+      throw std::runtime_error{
+          "G4VSolid could not be isolated from imported mesh or primitive."};
+    }
+
+    configureSolid(key_, solid, mdat);
   }
 }
 
-void DetectorConstruction::importMesh(
-    const std::string &name, std::shared_ptr<CADMesh::TessellatedMesh> mesh,
-    const json &mdat) {
+/*
+Import a primitive solid from some given metadata.
+Currently only supports:
+  - G4Box
+*/
+G4VSolid *DetectorConstruction::importPrimitive(const std::string &name,
+                                                const json &meta) {
+  auto type = meta["primitive_type"].get<std::string>();
+  if (type == "box") {
+    return new G4Box(name + "-generated-box", meta["halfx"].get<double>(),
+                     meta["halfy"].get<double>(), meta["halfz"].get<double>());
+  }
+
+  // Failed all of the if statements
+  throw std::runtime_error{type + " is not a supported primitive to import"};
+}
+
+void DetectorConstruction::configureSolid(const std::string &name,
+                                          G4VSolid *solid, const json &mdat) {
   // for generating random colors
   static std::default_random_engine en{std::random_device{}()};
   static std::uniform_real_distribution<double> dist(0, 1);
 
-  // scale from whatever unit in file to mm (Geant native units)
-  mesh->SetScale(mdat["scale"].get<double>());
+  std::vector<double> ea = mdat["euler_rotation"];
+  auto rotMat = new G4RotationMatrix;
+  // Set phi, theta, psi all at once
+  rotMat->set(ea[2], ea[1], ea[0]);
+
+  auto mat = mdat["material"].get<std::string>();
+  auto *material = G4Material::GetMaterial(mat);
+  if (material == nullptr) {
+    auto *nm = G4NistManager::Instance();
+    material = nm->FindOrBuildMaterial(mat);
+    if (material == nullptr) {
+      material = buildMaterialFromJson(mat, mdat[mat]);
+    }
+    if (material == nullptr) {
+      throw std::runtime_error{"Cannot find material " + mat};
+    }
+  }
+  auto *lv = new G4LogicalVolume(solid, material, name);
+
+  // Give the shape a random color to differentiate it
+  G4VisAttributes va;
+  if (!mdat.contains("color")) {
+    va.SetColor(dist(en), dist(en), dist(en), 0.8);
+  } else {
+    auto col = mdat["color"].get<std::vector<double>>();
+    va.SetColor(col[0], col[1], col[2], col[3]);
+  }
+  lv->SetVisAttributes(va);
 
   std::vector<double> v = mdat["translation"];
   G4ThreeVector translate(v[0], v[1], v[2]);
-  mesh->SetOffset(translate);
+  (void)new G4PVPlacement(rotMat, translate, lv, name, worldLogVol, false,
+                          0, checkOverlaps);
 
-  // auto solid = mesh->GetSolid();
-  std::vector<G4VSolid *> solids = mesh->GetSolids();
-
-  for (auto solid : solids) {
-    if (solids.size() > 1 && solid->GetName() != name) {
-      continue;
-    }
-
-    std::vector<double> ea = mdat["euler_rotation"];
-    auto rotMat = new G4RotationMatrix;
-    // Set phi, theta, psi all at once
-    rotMat->set(ea[2], ea[1], ea[0]);
-
-    auto mat = mdat["material"].get<std::string>();
-    auto *material = G4Material::GetMaterial(mat);
-    if (material == nullptr) {
-      auto *nm = G4NistManager::Instance();
-      material = nm->FindOrBuildMaterial(mat);
-      if (material == nullptr) {
-        material = buildMaterialFromJson(mat, mdat[mat]);
-      }
-      if (material == nullptr) {
-        throw std::runtime_error{"Cannot find material " + mat};
-      }
-    }
-    auto *lv = new G4LogicalVolume(solid, material, name);
-
-    // Give the shape a random color to differentiate it
-    G4VisAttributes va;
-    if (!mdat.contains("color")) {
-      va.SetColor(dist(en), dist(en), dist(en), 0.8);
-    } else {
-      auto col = mdat["color"].get<std::vector<double>>();
-      va.SetColor(col[0], col[1], col[2], col[3]);
-    }
-    lv->SetVisAttributes(va);
-
-    (void)new G4PVPlacement(rotMat, G4ThreeVector(), lv, name, worldLogVol,
-                            false, 0, checkOverlaps);
-
-    // Some things need the physical volumes placed before being configured
-    configureVolume(lv, mdat);
-  }
+  // Some things need the physical volumes placed before being configured
+  configureVolume(lv, mdat);
 }
 
 void DetectorConstruction::configureVolume(G4LogicalVolume *lv,

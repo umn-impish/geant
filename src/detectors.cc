@@ -1,3 +1,4 @@
+#include <G4Gamma.hh>
 #include <G4HCofThisEvent.hh>
 #include <G4OpticalPhoton.hh>
 #include <G4SDManager.hh>
@@ -108,13 +109,15 @@ void PerfectSensitiveDetector::Initialize(G4HCofThisEvent *hcote) {
 G4bool PerfectSensitiveDetector::ProcessHits(G4Step *step,
                                              G4TouchableHistory *) {
   auto prePoint = step->GetPreStepPoint();
-  if (prePoint->GetStepStatus() != fGeomBoundary) {
+  if (prePoint->GetStepStatus() != fGeomBoundary ||
+      // We only want to register X-rays and gamma rays in the detector
+      (step->GetTrack()->GetDefinition() != G4Gamma::Definition())) {
     return false;
   }
 
   auto energy = prePoint->GetKineticEnergy();
-  G4ThreeVector pos = step->GetPreStepPoint()->GetPosition();
-  auto momentum = step->GetPreStepPoint()->GetMomentumDirection();
+  G4ThreeVector pos = prePoint->GetPosition();
+  auto momentum = prePoint->GetMomentumDirection();
 
   auto *hit = new CrystalHit(energy, pos, momentum);
   hitsCollection->insert(hit);

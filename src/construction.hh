@@ -2,6 +2,7 @@
 
 #include <G4PVPlacement.hh>
 #include <G4VPhysicalVolume.hh>
+#include <G4VSolid.hh>
 #include <G4VUserDetectorConstruction.hh>
 
 #include <nlohmann/json.hpp>
@@ -29,10 +30,10 @@ private:
   G4LogicalVolume *worldLogVol;
   G4PVPlacement *makeWorld();
   void importSolids();
+  G4VSolid *importPrimitive(const std::string &, const json &);
   void configureVolume(G4LogicalVolume *, const json &);
   void configureRoughener(G4LogicalVolume *, const std::string &);
 
-  void importMesh(const std::string &name,
-                  std::shared_ptr<CADMesh::TessellatedMesh> mesh,
-                  const json &mdat);
+  void configureSolid(const std::string &name, G4VSolid *solid,
+                      const json &mdat);
 };
