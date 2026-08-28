@@ -74,7 +74,7 @@ void DetectorConstruction::importSolids() {
 
     // Specialize if we need to import a primitive type
     if (mdat.contains("primitive_type")) {
-      solid = importPrimitive(key_, mdat);
+      configureSolid(key_, importPrimitive(key_, mdat), mdat);
     } else if (mdat.contains("file")) {
       auto fn = mdat["file"].get<std::string>();
       if (fn.find(".stl") == std::string::npos) {
@@ -90,13 +90,9 @@ void DetectorConstruction::importSolids() {
           break;
         }
       }
-    }
-    if (solid == nullptr) {
-      throw std::runtime_error{
-          "G4VSolid could not be isolated from imported mesh or primitive."};
-    }
 
-    configureSolid(key_, solid, mdat);
+      configureSolid(key_, solid, mdat);
+    }
   }
 }
 
@@ -154,8 +150,8 @@ void DetectorConstruction::configureSolid(const std::string &name,
 
   std::vector<double> v = mdat["translation"];
   G4ThreeVector translate(v[0], v[1], v[2]);
-  (void)new G4PVPlacement(rotMat, translate, lv, name, worldLogVol, false,
-                          0, checkOverlaps);
+  (void)new G4PVPlacement(rotMat, translate, lv, name, worldLogVol, false, 0,
+                          checkOverlaps);
 
   // Some things need the physical volumes placed before being configured
   configureVolume(lv, mdat);
