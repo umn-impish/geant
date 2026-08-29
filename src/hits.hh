@@ -27,7 +27,7 @@ class SiHit : public VirtualHit {
 public:
   SiHit(const G4ThreeVector &position, const G4ThreeVector &momentum,
         G4double arrivalTime, G4double depositedEnergy);
-  ~SiHit();
+  ~SiHit() = default;
   const SiHit &operator=(const SiHit &rhs);
   bool operator==(const SiHit &rhs);
 
@@ -35,6 +35,9 @@ public:
 
   void Print() override;
   HitType hitType() const override;
+
+  void *operator new(size_t);
+  void operator delete(void *);
 
 private:
   G4double depositedEnergy;
@@ -44,11 +47,14 @@ class CrystalHit : public VirtualHit {
 public:
   CrystalHit(G4double depositedEnergy, const G4ThreeVector &position,
              const G4ThreeVector &momentum);
-  ~CrystalHit();
+  ~CrystalHit() = default;
   const CrystalHit &operator=(const CrystalHit &rhs);
 
   HitType hitType() const override;
   G4double peekDepositedEnergy() const;
+
+  void *operator new(size_t);
+  void operator delete(void *);
 
 private:
   G4double depositedEnergy;

@@ -41,8 +41,6 @@ SiHit::SiHit(const G4ThreeVector &position, const G4ThreeVector &momentum,
     : VirtualHit(position, momentum, arrivalTime),
       depositedEnergy(depositedEnergy) {}
 
-SiHit::~SiHit() {}
-
 void SiHit::Print() {
   auto f = G4cout.flags();
   G4cout << "=== Begin SiHit ===" << G4endl
@@ -57,6 +55,14 @@ void SiHit::Print() {
   G4cout.flush();
 }
 
+void *SiHit::operator new(size_t) {
+  if (sialloc == nullptr)
+    sialloc = new G4Allocator<SiHit>;
+  return (void *)sialloc->MallocSingle();
+}
+
+void SiHit::operator delete(void *h) { sialloc->FreeSingle((SiHit *)h); }
+
 G4double SiHit::peekDepositedEnergy() const { return depositedEnergy; }
 
 VirtualHit::HitType SiHit::hitType() const { return HitType::Si; }
@@ -66,8 +72,16 @@ CrystalHit::CrystalHit(G4double depositedEnergy, const G4ThreeVector &position,
     : // XXX ignore arrival time
       VirtualHit(position, momentum, 0), depositedEnergy(depositedEnergy) {}
 
-CrystalHit::~CrystalHit() {}
-
 VirtualHit::HitType CrystalHit::hitType() const { return HitType::Crystal; }
 
 G4double CrystalHit::peekDepositedEnergy() const { return depositedEnergy; }
+
+void *CrystalHit::operator new(size_t) {
+  if (cralloc == nullptr)
+    cralloc = new G4Allocator<CrystalHit>;
+  return (void *)cralloc->MallocSingle();
+}
+
+void CrystalHit::operator delete(void *h) {
+  cralloc->FreeSingle((CrystalHit *)h);
+}
