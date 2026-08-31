@@ -7,27 +7,31 @@ Assumes the slabs are all 1km thick.
 """
 
 import json
-import os
+import pathlib
+import sys
 from typing import cast
 
-import cadquery as cq
 import numpy as np
 from astropy import table as atab
+from astropy import units as u
 
 # Calculated using pymsis results
-slab_data = cast(atab.QTable, atab.QTable.read("mass_fracs.tab", format="ascii"))
+try:
+    fracs_file = pathlib.Path(sys.argv[1])
+    slab_data = cast(atab.QTable, atab.QTable.read(fracs_file))
+except IndexError:
+    print("Supply the mass fractions .asdf as the sole script argument")
+    sys.exit(1)
 
 # The altitudes themselves might not be in delta = 1km,
 # but we should assume that the LOS is in 1km steps.
 slab_thick = 1e6
 slab_side = 50e6
-alts = np.arange(slab_data["altitude"].size) * slab_thick
+alts = np.arange(cast(u.Quantity, slab_data["altitude"]).size) * slab_thick
 
 # Generate the metadata we need for a bunch of slabs to be layered
 simulation_z_size = 800
-placements: np.ndarray = round(-(alts.max() - alts.min()) / 2) + (
-    alts - alts.min()
-)
+placements: np.ndarray = round(-(alts.max() - alts.min()) / 2) + (alts - alts.min())
 
 elements: list[str] = [c for c in slab_data.columns if c not in {"altitude", "density"}]
 meta = {}
@@ -36,8 +40,6 @@ for i, row in enumerate(slab_data):  # pyright: ignore[reportArgumentType]
     norm = sum(fractions.values())
     components = {}
     for k, v in fractions.items():
-        if v < 1e-6:
-            continue
         components[k] = v / norm
 
     k = f"slab{i}"
@@ -48,7 +50,10 @@ for i, row in enumerate(slab_data):  # pyright: ignore[reportArgumentType]
         "halfy": slab_side / 2,
         "halfz": slab_thick / 2,
         "material": k,
-        k: {"density": row["density"], "components": components},
+        k: {
+            "density": float(row["density"].to_value(u.g / u.cm**3)),
+            "components": components,
+        },
         "euler_rotation": [0, 0, 0],
         "translation": [0, 0, placements[i]],
         "color": [0.8, 0.8, 0.8, 0.8],
@@ -67,5 +72,7 @@ meta["detector"] = {
     "color": [0.5, 0, 0, 1],
 }
 
-with open("atmosphere/meta.json", "w") as f:
+out_dir = pathlib.Path("atmosphere-" + fracs_file.stem)
+out_dir.mkdir(exist_ok=True)
+with open(out_dir / "meta.json", "w") as f:
     json.dump(meta, f)

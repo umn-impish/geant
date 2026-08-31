@@ -7,6 +7,7 @@
 #include <G4THitsCollection.hh>
 #include <G4TouchableHistory.hh>
 
+#include <G4TrackStatus.hh>
 #include <detectors.hh>
 #include <hits.hh>
 
@@ -108,10 +109,18 @@ void PerfectSensitiveDetector::Initialize(G4HCofThisEvent *hcote) {
 
 G4bool PerfectSensitiveDetector::ProcessHits(G4Step *step,
                                              G4TouchableHistory *) {
+  // Perfect detector: kill the particle where it lies, no matter what
+  step->GetTrack()->SetTrackStatus(fStopAndKill);
+
   auto prePoint = step->GetPreStepPoint();
   if (prePoint->GetStepStatus() != fGeomBoundary ||
-      // We only want to register X-rays and gamma rays in the detector
-      (step->GetTrack()->GetDefinition() != G4Gamma::Definition())) {
+      !step->IsFirstStepInVolume()) {
+    // Ignore secondaries inside the sensitive detector,
+    // or anything that is leaving
+    return false;
+  }
+
+  if (step->GetTrack()->GetDefinition() != G4Gamma::Definition()) {
     return false;
   }
 
@@ -121,9 +130,6 @@ G4bool PerfectSensitiveDetector::ProcessHits(G4Step *step,
 
   auto *hit = new CrystalHit(energy, pos, momentum);
   hitsCollection->insert(hit);
-
-  // Perfect detector: kill the particle where it lies
-  step->GetTrack()->SetTrackStatus(fStopAndKill);
 
   return true;
 }
