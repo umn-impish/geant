@@ -1,4 +1,6 @@
 #include <G4Material.hh>
+#include <G4Sphere.hh>
+#include <G4VSolid.hh>
 #include <random>
 
 #include <configs.hh>
@@ -17,6 +19,8 @@
 #include <G4PhysicalVolumeStore.hh>
 #include <G4RotationMatrix.hh>
 #include <G4SDManager.hh>
+#include <G4Sphere.hh>
+#include <G4SubtractionSolid.hh>
 #include <G4VisAttributes.hh>
 #include <stdexcept>
 
@@ -101,6 +105,7 @@ void DetectorConstruction::importSolids() {
 Import a primitive solid from some given metadata.
 Currently only supports:
   - G4Box
+  - G4Sphere
 */
 G4VSolid *DetectorConstruction::importPrimitive(const std::string &name,
                                                 const json &meta) {
@@ -108,6 +113,18 @@ G4VSolid *DetectorConstruction::importPrimitive(const std::string &name,
   if (type == "box") {
     return new G4Box(name + "-generated-box", meta["halfx"].get<double>(),
                      meta["halfy"].get<double>(), meta["halfz"].get<double>());
+  } else if (type == "sphere") {
+    return new G4Sphere(
+        name + "-generated-sphere", meta["r_min"].get<double>(),
+        meta["r_max"].get<double>(), meta["phi_start"].get<double>(),
+        meta["delta_phi"].get<double>(), meta["theta_start"].get<double>(),
+        meta["delta_theta"].get<double>());
+  } else if (type == "subtraction") {
+    auto a = importPrimitive(meta["solid_a"]["name"], meta["solid_a"]);
+    auto b = importPrimitive(meta["solid_b"]["name"], meta["solid_b"]);
+    auto t = meta["relative_translation"].get<std::vector<double>>();
+    return new G4SubtractionSolid(name + "-generated-subtraction", a,
+                                  b, nullptr, {t[0], t[1], t[2]});
   }
 
   // Failed all of the if statements
