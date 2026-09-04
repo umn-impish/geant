@@ -90,7 +90,7 @@ void DetectorConstruction::importSolids() {
       mesh->SetScale(mdat["scale"].get<double>());
 
       for (auto s : mesh->GetSolids()) {
-        if (s->GetName() == key_) {
+        if (mesh->GetSolids().size() == 1 || s->GetName() == key_) {
           solid = s;
           break;
         }
