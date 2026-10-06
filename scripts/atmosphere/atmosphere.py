@@ -28,8 +28,9 @@ def generate_meta():
 
     # The altitudes themselves might not be in delta = 1km,
     # but we should assume that the LOS is in 1km steps.
-    slab_thick = 1e6
-    slab_side = 50e6
+    # slab_thick = 1e6
+    slab_thick = 5e5
+    slab_side = 800e6
     alts = np.arange(cast(u.Quantity, slab_data["altitude"]).size) * slab_thick
 
     # Generate the metadata we need for a bunch of slabs to be layered
@@ -91,14 +92,11 @@ def generate_macro(atmosphere_extent: u.Quantity[u.km], out_direc: pathlib.Path)
     R is the circular size of the Sun after the atmosphere box of length d."""
 
     radius = (atmosphere_extent * np.tan(0.53 << u.deg / 2)).to_value(u.km)
+    gps_location = cast(float, (atmosphere_extent / 2).to_value(u.km)) + 10
     macro_base = f"""/gps/particle gamma
                     # Need to update this depending on the geometry
-                    /gps/pos/centre 0 0 400 km
-                    /gps/pos/type Plane
-                    /gps/pos/shape Circle
-
-                    # The projection of the Sun at the top of a simulation box
-                    /gps/pos/radius {radius:.2f} km
+                    /gps/pos/centre 0 0 {gps_location:.0f} km
+                    /gps/pos/type Point
 
                     /gps/direction 0 0 -1 
 
@@ -110,7 +108,7 @@ def generate_macro(atmosphere_extent: u.Quantity[u.km], out_direc: pathlib.Path)
     macro_base = inspect.cleandoc(macro_base)
     with open(out_direc / "macro.mac", "w") as f:
         print(macro_base, file=f)
-        for energy in np.arange(10, 300, 10):
+        for energy in np.arange(10, 300):
             print(f"/gps/ene/min {energy}", file=f)
             print(f"/gps/ene/max {energy + 1}", file=f)
             print("/run/beamOn 100000", file=f)
