@@ -1,6 +1,7 @@
 #include <G4Gamma.hh>
 #include <G4HCofThisEvent.hh>
 #include <G4OpticalPhoton.hh>
+#include <G4RunManager.hh>
 #include <G4SDManager.hh>
 #include <G4Step.hh>
 #include <G4StepStatus.hh>
@@ -129,6 +130,49 @@ G4bool PerfectSensitiveDetector::ProcessHits(G4Step *step,
   auto momentum = prePoint->GetMomentumDirection();
 
   auto *hit = new CrystalHit(energy, pos, momentum);
+  hitsCollection->insert(hit);
+
+  return true;
+}
+
+PassthroughSensitiveDetector::PassthroughSensitiveDetector(
+    const G4String &detectorName)
+    : G4VSensitiveDetector(detectorName),
+      thisCollectionName(detectorName + "_passthru"), hitsCollectionId(-1) {
+  collectionName.insert(thisCollectionName);
+}
+
+void PassthroughSensitiveDetector::Initialize(G4HCofThisEvent *hcote) {
+  // polymorphism in the hitscollection
+  hitsCollection = new G4THitsCollection<VirtualHit>(SensitiveDetectorName,
+                                                     thisCollectionName);
+  hitsCollectionId =
+      G4SDManager::GetSDMpointer()->GetCollectionID(thisCollectionName);
+  hcote->AddHitsCollection(hitsCollectionId, hitsCollection);
+}
+
+G4bool PassthroughSensitiveDetector::ProcessHits(G4Step *step,
+                                                 G4TouchableHistory *) {
+  auto prePoint = step->GetPreStepPoint();
+  if (prePoint->GetStepStatus() != fGeomBoundary ||
+      !step->IsFirstStepInVolume()) {
+    // Ignore secondaries inside the sensitive detector,
+    // or anything that is leaving
+    return false;
+  }
+
+  if (step->GetTrack()->GetDefinition() != G4Gamma::Definition()) {
+    return false;
+  }
+
+  auto energy = prePoint->GetKineticEnergy();
+  G4ThreeVector pos = prePoint->GetPosition();
+  auto momentum = prePoint->GetMomentumDirection();
+
+  auto evtId = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+  auto trackId = step->GetTrack()->GetTrackID();
+
+  auto *hit = new CrystalHit(energy, pos, momentum, trackId, evtId);
   hitsCollection->insert(hit);
 
   return true;

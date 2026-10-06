@@ -50,7 +50,7 @@ void SiHit::Print() {
          << G4BestUnit(position, "Length") << G4endl
          << "Arrival time:     " << std::setw(7)
          << G4BestUnit(arrivalTime, "Time") << G4endl
-         << "=== End SiCrystalHit ===" << G4endl;
+         << "=== End SiHit ===" << G4endl;
   G4cout.flags(f);
   G4cout.flush();
 }
@@ -68,9 +68,13 @@ G4double SiHit::peekDepositedEnergy() const { return depositedEnergy; }
 VirtualHit::HitType SiHit::hitType() const { return HitType::Si; }
 
 CrystalHit::CrystalHit(G4double depositedEnergy, const G4ThreeVector &position,
-                       const G4ThreeVector &momentum)
+                       const G4ThreeVector &momentum, G4int trackId_,
+                       G4int eventId_)
     : // XXX ignore arrival time
-      VirtualHit(position, momentum, 0), depositedEnergy(depositedEnergy) {}
+      VirtualHit(position, momentum, 0),
+      trackId{trackId_}, eventId{eventId_},
+      depositedEnergy{depositedEnergy}
+      {}
 
 VirtualHit::HitType CrystalHit::hitType() const { return HitType::Crystal; }
 

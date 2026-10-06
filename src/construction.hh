@@ -27,6 +27,7 @@ private:
   std::vector<G4LogicalVolume *> siLogVols;
   std::vector<G4LogicalVolume *> crLogVols;
   std::vector<G4LogicalVolume *> perfectLogVols;
+  std::vector<G4LogicalVolume *> passthruLogVols;
   G4LogicalVolume *worldLogVol;
   G4PVPlacement *makeWorld();
   void importSolids();

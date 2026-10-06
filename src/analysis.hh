@@ -40,9 +40,6 @@ class Analysis
         static Analysis& instance();
         static std::uint32_t currentRunNumber();
 
-        static void setEventId(G4int);
-        static G4int getEventId();
-
         void initFiles(G4bool isMaster);
         void saveFiles(G4bool isMaster);
         void saveEvent(const G4Event* evt);
@@ -53,7 +50,6 @@ class Analysis
         Analysis(const Analysis&) =delete;
         void operator=(const Analysis&) =delete;
     private:
-        static G4ThreadLocal G4int currentEventId;
         static std::uint32_t runNumber;
 
         Analysis();

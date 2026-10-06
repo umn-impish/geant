@@ -52,3 +52,18 @@ private:
   G4THitsCollection<VirtualHit> *hitsCollection;
   G4int hitsCollectionId;
 };
+
+
+class PassthroughSensitiveDetector : public G4VSensitiveDetector {
+public:
+  PassthroughSensitiveDetector(const G4String &detectorName);
+  ~PassthroughSensitiveDetector() = default;
+
+  void Initialize(G4HCofThisEvent *hc) override;
+  G4bool ProcessHits(G4Step *step, G4TouchableHistory *) override;
+
+private:
+  G4String thisCollectionName;
+  G4THitsCollection<VirtualHit> *hitsCollection;
+  G4int hitsCollectionId;
+};

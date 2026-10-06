@@ -36,7 +36,8 @@ DetectorConstruction::DetectorConstruction(std::string meta_fn)
       // JSON array.
       // For some reason, json::parse parses the array to
       // a nested array(?) so we only want the first element.
-      meta_fn{meta_fn}, siLogVols{}, crLogVols{}, perfectLogVols{} {
+      meta_fn{meta_fn}, siLogVols{}, crLogVols{}, perfectLogVols{},
+      passthruLogVols{} {
   Materials::makeMaterials();
 }
 
@@ -123,8 +124,8 @@ G4VSolid *DetectorConstruction::importPrimitive(const std::string &name,
     auto a = importPrimitive(meta["solid_a"]["name"], meta["solid_a"]);
     auto b = importPrimitive(meta["solid_b"]["name"], meta["solid_b"]);
     auto t = meta["relative_translation"].get<std::vector<double>>();
-    return new G4SubtractionSolid(name + "-generated-subtraction", a,
-                                  b, nullptr, {t[0], t[1], t[2]});
+    return new G4SubtractionSolid(name + "-generated-subtraction", a, b,
+                                  nullptr, {t[0], t[1], t[2]});
   }
 
   // Failed all of the if statements
@@ -193,7 +194,9 @@ void DetectorConstruction::configureVolume(G4LogicalVolume *lv,
     configureRoughener(lv, met["other_volume"].get<std::string>());
   } else if (type == "perfect_detector") {
     perfectLogVols.push_back(lv);
-  } else if (type != "passive") {
+  } else if (type == "passthru_detector") {
+    passthruLogVols.push_back(lv);
+  }else if (type != "passive") {
     throw std::runtime_error{"Unknown geometry type: " + type};
   }
   /*
@@ -252,6 +255,12 @@ void DetectorConstruction::ConstructSDandField() {
   G4SDManager::GetSDMpointer()->AddNewDetector(pd);
   for (auto lv : perfectLogVols) {
     lv->SetSensitiveDetector(pd);
+  }
+
+  auto *passthru = new PassthroughSensitiveDetector("passthruDet");
+  G4SDManager::GetSDMpointer()->AddNewDetector(passthru);
+  for (auto lv : passthruLogVols) {
+    lv->SetSensitiveDetector(passthru);
   }
 }
 

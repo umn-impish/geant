@@ -41,7 +41,6 @@ static std::string genBaseSubfolder(std::uint64_t milliz) {
 } // namespace
 
 uint32_t Analysis::runNumber = 0;
-G4ThreadLocal G4int Analysis::currentEventId = 0;
 
 Analysis::Analysis()
     : crystOut(kCRYST_OUT, false), specIn(kSPEC_IN, false),
@@ -106,6 +105,7 @@ void Analysis::saveConfig() {
 
 void Analysis::saveEvent(const G4Event *evt) {
   G4AutoLock l(&dataMux);
+  saveIncidentSpectrumChunk();
   static const std::vector<VirtualHit *> empty;
 
   auto *hcote = evt->GetHCofThisEvent();
@@ -140,8 +140,6 @@ void Analysis::processHitCollection(const G4VHitsCollection *hc) {
     G4Exception("src/Analysis.cc processHitCollection", "", FatalException,
                 "unrecognized hit. what?");
   }
-
-  saveIncidentSpectrumChunk();
 }
 
 void Analysis::addIncidentEnergy(long double e) {
@@ -178,14 +176,19 @@ void Analysis::saveCrystalHits(const std::vector<VirtualHit *> *vec) {
     deposits.push_back(curEng);
     positions.push_back(pos);
     momenta.push_back(niceHit->peekMomentum());
+    if (igc.configOption<bool>("save-track-identifiers")) {
+      // Event and track IDs get written for all hits in current collection
+      crystOut.file() << niceHit->eventId << '|' << niceHit->trackId << ' ';
+    }
   }
 
   if (!saveEachHitEnergy) {
     double sum = std::accumulate(deposits.begin(), deposits.end(), 0.);
-    crystOut.file() << Analysis::currentEventId << ' ' << (sum / keV);
+    crystOut.file() << (sum / keV);
     if (saveCrystPos) {
-      for (const auto &hitPos : positions)
+      for (const auto &hitPos : positions) {
         crystOut.file() << ' ' << hitPos;
+      }
     }
   } else {
     for (std::size_t i = 0; i < positions.size(); ++i) {
@@ -206,7 +209,7 @@ void Analysis::saveCrystalHits(const std::vector<VirtualHit *> *vec) {
 }
 
 void Analysis::saveSiHits(const std::vector<VirtualHit *> *vec) {
-  siOut.file() << Analysis::currentEventId << ' ' << vec->size();
+  siOut.file() << vec->size();
   if (saveSiPositions) {
     for (const auto *h : *vec) {
       const auto &p = h->peekPosition();
@@ -233,12 +236,8 @@ void Analysis::saveScintillated(std::size_t num) {
   if (num == 0)
     return;
   // # scintillated per event can vary
-  scintOut.file() << Analysis::currentEventId << ' ' << num << std::endl;
+  scintOut.file() << num << std::endl;
 }
-
-void Analysis::setEventId(G4int id) { currentEventId = id; }
-
-G4int Analysis::getEventId() { return currentEventId; }
 
 // filewrapper below
 
