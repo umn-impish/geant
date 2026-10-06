@@ -2,7 +2,7 @@
 /control/verbose 1
 /run/initialize
 
-/vis/open OpenGLImmediateQt
+/vis/open OpenGLStoredQt
 /vis/viewer/set/autoRefresh false
 /vis/verbose 0
 
