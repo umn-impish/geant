@@ -1,0 +1,50 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: board (), datatype: string}
+# - {name: thickness (mm), unit: mm, datatype: float64}
+# - {name: total mass (g), unit: g, datatype: float64}
+# - {name: cross section (mm2), unit: mm2, datatype: float64}
+# - {name: volume (mm3), unit: mm3, datatype: float64}
+# - {name: FR4 mass (g), unit: g, datatype: float64}
+# - {name: copper mass (g), unit: g, datatype: float64}
+# - {name: thermal conductivity (W / (K m)), unit: W / (K m), datatype: float64}
+# delimiter: ','
+# meta: !!omap
+# - __serialized_columns__:
+#     FR4 mass (g):
+#       __class__: astropy.units.quantity.Quantity
+#       unit: &id001 !astropy.units.Unit {unit: g}
+#       value: !astropy.table.SerializedColumn {name: FR4 mass (g)}
+#     copper mass (g):
+#       __class__: astropy.units.quantity.Quantity
+#       unit: *id001
+#       value: !astropy.table.SerializedColumn {name: copper mass (g)}
+#     cross section (mm2):
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: mm2}
+#       value: !astropy.table.SerializedColumn {name: cross section (mm2)}
+#     thermal conductivity (W / (K m)):
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: W / (K m)}
+#       value: !astropy.table.SerializedColumn {name: thermal conductivity (W / (K m))}
+#     thickness (mm):
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: mm}
+#       value: !astropy.table.SerializedColumn {name: thickness (mm)}
+#     total mass (g):
+#       __class__: astropy.units.quantity.Quantity
+#       unit: *id001
+#       value: !astropy.table.SerializedColumn {name: total mass (g)}
+#     volume (mm3):
+#       __class__: astropy.units.quantity.Quantity
+#       unit: !astropy.units.Unit {unit: mm3}
+#       value: !astropy.table.SerializedColumn {name: volume (mm3)}
+# schema: astropy-2.0
+board (),thickness (mm),total mass (g),cross section (mm2),volume (mm3),FR4 mass (g),copper mass (g),thermal conductivity (W / (K m))
+power-board,1.6,25.291222809332897,7520.8,12033.28,21.12258670418203,4.168636105150867,15.676501845099622
+sipm-board,1.6,24.378942051410483,7786.3,12458.080000000002,22.33794333458378,2.0409987168267043,7.57175432030626
+junction-board,1.6,23.81092565449252,7055.2,11288.32,19.792691976819818,4.018233677672704,16.099867987861433
+fc-board,1.6,24.55087731277411,6943.1,11108.960000000001,19.187232267140363,5.363645045633745,21.730593953878824
+bias-board,1.6,26.484818764999243,7944.3,12710.880000000001,22.372002507559984,4.11281625743926,14.661879224021156
+toggles-board,1.6,26.0557287915767,7552.1,12083.36,21.038959902051076,5.016768889525625,18.728244312584668
