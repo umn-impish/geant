@@ -1,8 +1,15 @@
 # prefix the folders saved
-save-prefix string testing-event-ids
+save-prefix string whole-payload-response
+# Usually want to use the GPS,
+# unless you are producing a full response matrix.
+# Options: gps, central-generator
+generator-type string gps
 
-save-each-cryst-hit-energy bool 1
-save-each-cryst-hit-momentum bool 1
+# Required for the CentralEventGenerator
+central-generator-config string momentum-meta.json
+
+save-each-cryst-hit-energy bool 0
+save-each-cryst-hit-momentum bool 0
 save-scintillator-positions bool 1
 save-sipm-positions bool 0
 save-sipm-energies bool 0
@@ -15,13 +22,13 @@ lyso-attenuation-length double 50
 specular-sigma-alpha-deg double 2
 
 # World volume parameters (in units of mm, aka native G4 units)
-world-x double 900e6
-world-y double 900e6
-world-z double 800e6
+world-x double 10000
+world-y double 10000
+world-z double 10000
 
 # Whether or not we want to save the track and event ids
 # for hits that are made
-save-track-identifiers bool 1
+save-track-identifiers bool 0
 
 # Geometric configurations are set via JSON
 # metadata which is passed to DetectorConstruction
