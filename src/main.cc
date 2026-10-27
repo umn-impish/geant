@@ -25,6 +25,14 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  std::random_device rd{};
+  std::cout << "random entropy is " << rd.entropy() << std::endl;
+
+  // Generate a random seed and use it
+  auto seed = rd();
+  std::cout << "seed is " << seed << std::endl;
+  G4Random::setTheSeed(seed);
+
   // assume same file name always (... ?)
   auto root = std::filesystem::canonical("/proc/self/exe").parent_path();
   std::string configFile{root / "simulation.config.file"};

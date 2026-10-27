@@ -26,13 +26,16 @@ void ActionInitialization::Build() const {
   SetUserAction(new PrimaryGeneratorAction);
 }
 
+thread_local std::random_device CentralEventGenerator::rd{};
+thread_local std::mt19937 CentralEventGenerator::random_gen{
+    CentralEventGenerator::rd()};
+
 CentralEventGenerator::CentralEventGenerator(
     const G4double dx, const G4double dy, const G4double dz,
     const G4double radius_, const std::vector<double> &momentum_bins_,
     const std::vector<uint64_t> &momentum_hg)
     : beam_dx{dx}, beam_dy{dy}, beam_dz{dz}, radius{radius_},
       momentum_bins{momentum_bins_}, entries_per_axis{momentum_bins.size() - 1},
-      random_gen{std::random_device()()},
       momentum_dist{momentum_hg.begin(), momentum_hg.end()},
       pos_unif{-0.5, 0.5} {
   if (entries_per_axis * entries_per_axis * entries_per_axis !=
@@ -68,8 +71,7 @@ void CentralEventGenerator::GeneratePrimaryVertex(G4Event *evt) {
   std::uniform_real_distribution<double> unif{0.0, 1.0};
   auto gen_mom = [&unif, this](auto idx) {
     return this->momentum_bins[idx] +
-           unif(this->random_gen) *
-               (momentum_bins[idx + 1] - momentum_bins[idx]) / 2;
+           unif(random_gen) * (momentum_bins[idx + 1] - momentum_bins[idx]);
   };
   auto px = gen_mom(i) * keV;
   auto py = gen_mom(j) * keV;
@@ -85,9 +87,10 @@ void CentralEventGenerator::GeneratePrimaryVertex(G4Event *evt) {
   // Add a random amount |dx, dy, dz| onto the nominal position.
   // This is so that not every single ray passes through the origin.
   // The amount is set by the extent of your simulated volume.
-  G4ThreeVector pos{nom[0] + pos_unif(random_gen) * beam_dx,
-                    nom[1] + pos_unif(random_gen) * beam_dy,
-                    nom[2] + pos_unif(random_gen) * beam_dz};
+  auto dx_scale = pos_unif(random_gen), dy_scale = pos_unif(random_gen),
+       dz_scale = pos_unif(random_gen);
+  G4ThreeVector pos{nom[0] + dx_scale * beam_dx, nom[1] + dy_scale * beam_dy,
+                    nom[2] + dz_scale * beam_dz};
 
   // Set the physical parameters, and generate the particle
   SetParticlePosition(pos);
