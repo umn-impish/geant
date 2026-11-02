@@ -24,6 +24,9 @@ materials = {
     "tungsten": {
         "material": "G4_W",
     },
+    "stainless-steel": {
+        "material": "G4_STAINLESS-STEEL",
+    },
     "tungsten-alloy": {
         "material": "tungsten-alloy",
         "tungsten-alloy": {

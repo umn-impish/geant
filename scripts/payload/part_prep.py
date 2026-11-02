@@ -10,7 +10,7 @@ from materials import materials
 SPECIAL_TYPES = {"yap": "scintillator", "lyso": "scintillator"}
 COMMON_META = {
     "scale": 1,
-    "translation": [-355.6 / 2, -143.256 / 2, 157.48 / 2],
+    "translation": [0, 0, 0],
     "euler_rotation": [0, 0, 0],
 }
 
