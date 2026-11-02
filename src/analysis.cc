@@ -161,7 +161,8 @@ void Analysis::printSiHits(const std::vector<VirtualHit *> *vec) {
 
 void Analysis::saveCrystalHits(const std::vector<VirtualHit *> *vec) {
   const auto &igc = GlobalConfigs::instance();
-  auto saveCrystPos = igc.configOption<bool>("save-scintillator-positions");
+  auto saveAllScintPos =
+      igc.configOption<bool>("save-all-scintillator-positions");
   auto saveEachHitEnergy = igc.configOption<bool>("save-each-cryst-hit-energy");
   auto saveEachHitMomentum =
       igc.configOption<bool>("save-each-cryst-hit-momentum");
@@ -185,18 +186,18 @@ void Analysis::saveCrystalHits(const std::vector<VirtualHit *> *vec) {
   if (!saveEachHitEnergy) {
     double sum = std::accumulate(deposits.begin(), deposits.end(), 0.);
     crystOut.file() << (sum / keV);
-    if (saveCrystPos) {
-      for (const auto &hitPos : positions) {
-        crystOut.file() << ' ' << hitPos;
-      }
-    }
-  } else {
+  }
+  if (saveAllScintPos || saveEachHitEnergy) {
+    // Print the energy per hit along with each position
     for (std::size_t i = 0; i < positions.size(); ++i) {
       auto e = deposits[i];
       auto pos = positions[i];
       crystOut.file() << " (" << pos.x() / mm << ',' << pos.y() / mm << ','
                       << pos.z() / mm << ',' << e / keV << ')';
     }
+  } else if (!positions.empty()) {
+    // Only print the first position of the hit
+    crystOut.file() << ' ' << positions.front();
   }
 
   if (saveEachHitMomentum) {

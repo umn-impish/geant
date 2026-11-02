@@ -3,6 +3,7 @@ add_executable(
         main.cc
         actions.cc
         analysis.cc
+        central-event-generator.cc
         construction.cc
         detectors.cc
         hits.cc
