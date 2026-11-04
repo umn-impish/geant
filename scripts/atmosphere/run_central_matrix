@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -euo pipefail
+
+echo "/run/printProgress 10000" > macro.mac
+echo "/run/beamOn 1000000" >> macro.mac
+macro=$(realpath macro.mac)
+
+generated_direc="$1"
+cd $generated_direc
+./cadmesh-wrapper "payload/materials.json" "$macro"
