@@ -26,7 +26,6 @@ static const G4String kSIPM_OUT = "sipm-out";
 static const G4String kSCINT_OUT = "scint-phots-out";
 static const G4String kSIPM_ENGS_OUT = "sipm-energies-out";
 static const G4String kCONFIG_OUT = "simulation-configuration";
-static const std::string OUT_DIR = "./data-out";
 
 static std::string genBaseSubfolder(std::uint64_t milliz) {
   static const std::size_t TIME_FMT_LEN = 256;
@@ -264,7 +263,8 @@ G4String AnalysisFileWrapper::buildFilename() {
   ss << pfx << "-run" << Analysis::currentRunNumber() << "-" << fold;
   auto prefixedFolder = ss.str();
 
-  std::filesystem::path outPath(OUT_DIR);
+  std::filesystem::path outPath(
+      GlobalConfigs::instance().configOption<std::string>("data-dir"));
   auto p = outPath / prefixedFolder;
   if (!std::filesystem::exists(p))
     std::filesystem::create_directory(p);

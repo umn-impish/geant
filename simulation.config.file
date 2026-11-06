@@ -1,3 +1,6 @@
+# the directory to save files to
+# absolute or relative path
+data-dir string data-out
 # prefix the folders saved
 save-prefix string whole-payload-response
 # Usually want to use the GPS,
@@ -10,7 +13,7 @@ central-generator-config string momentum-meta.json
 
 save-each-cryst-hit-energy bool 0
 save-each-cryst-hit-momentum bool 0
-save-scintillator-positions bool 1
+save-all-scintillator-positions bool 1
 save-sipm-positions bool 0
 save-sipm-energies bool 0
 

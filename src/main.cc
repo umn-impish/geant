@@ -18,9 +18,11 @@
 using json = nlohmann::json;
 
 int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    std::cerr << "supply metadata fn as first argument--optionally supply a "
-                 ".mac file to run"
+  int minimumArgs = 3;
+  if (argc < minimumArgs) {
+    std::cerr << "Usage: " << argv[0]
+              << " [simulation config file path] [metadata path] [optional "
+                 "macro to run]"
               << std::endl;
     return 1;
   }
@@ -33,9 +35,7 @@ int main(int argc, char *argv[]) {
   std::cout << "seed is " << seed << std::endl;
   G4Random::setTheSeed(seed);
 
-  // assume same file name always (... ?)
-  auto root = std::filesystem::canonical("/proc/self/exe").parent_path();
-  std::string configFile{root / "simulation.config.file"};
+  std::string configFile{argv[1]};
 
   // Set the file name for this run
   const auto &configInst = GlobalConfigs::instance(configFile);
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
   runManager->SetUserInitialization(pl);
 
   // Construction needs the material metadata from JSON file
-  runManager->SetUserInitialization(new DetectorConstruction{argv[1]});
+  runManager->SetUserInitialization(new DetectorConstruction{argv[2]});
   runManager->SetUserInitialization(new ActionInitialization);
 
   // optionally enable scintillation
@@ -69,10 +69,10 @@ int main(int argc, char *argv[]) {
   G4OpticalParameters::Instance()->SetProcessActivation("Cerenkov", false);
 
   auto *uiMan = G4UImanager::GetUIpointer();
-  bool batchMode = (argc > 2);
+  bool batchMode = (argc > minimumArgs);
   if (batchMode) {
     G4String command = "/control/execute ";
-    G4String fileName = argv[2];
+    G4String fileName = argv[3];
     uiMan->ApplyCommand("/run/initialize");
     uiMan->ApplyCommand(command + fileName);
   } else {
