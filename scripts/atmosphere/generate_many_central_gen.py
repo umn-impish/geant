@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import pathlib
 
 import asdf
@@ -29,29 +30,30 @@ def main():
 
     # For just the IMPISH flight model
     base_generator_meta = {
-        "beam_dx_mm": 355,
-        "beam_dy_mm": 157,
-        "beam_dz_mm": 143,
-        "radius_mm": 250,
+        "beam_dx_mm": 110,
+        "beam_dy_mm": 60,
+        "beam_dz_mm": 102,
+        "radius_mm": 150,
     }
 
     # Configure the global settings
     config_map = read_geant_config(config_fn)
     config_map["generator-type"] = "central-generator"
-    config_map["central-generator-config"] = (cen_gen_cfg_fn := "central-gen-meta.json")
     config_map["save-prefix"] = "central-gen-matrix"
 
     direc.mkdir(exist_ok=True)
+    config_map["data-dir"] = str((direc / "data-out").resolve())
+    (direc / "data-out").mkdir(exist_ok=True)
     af = asdf.open(momentum_fn)
     for k in af.keys():  # noqa: SIM118
         k = str(k)
         if not k.startswith("("):
             continue
         ea, eb = (float(x) for x in k[1:-1].split(","))
-        ebin_direc = direc / f"{ea:.1f}-{eb:.1f}-kev-matrix-row"
-        ebin_direc.mkdir(exist_ok=True)
+        config_map["save-prefix"] = (pfx := f"{ea:.1f}-{eb:.1f}-kev-matrix-row")
+        config_map["central-generator-config"] = (cen_gen_cfg_fn := f"{pfx}-meta.json")
         cur_meta = af[k]
-        with open(ebin_direc / cen_gen_cfg_fn, "w") as jf:
+        with open(direc / cen_gen_cfg_fn, "w") as jf:
             json.dump(
                 {
                     "momentum_bins_kev": cur_meta["bin_edges"].tolist(),
@@ -62,10 +64,21 @@ def main():
                 | base_generator_meta,
                 jf,
             )
-        write_geant_config(ebin_direc / "simulation.config.file", config_map)
-        (ebin_direc / "cadmesh-wrapper").symlink_to(exe)
-        (ebin_direc / geom_direc.stem).symlink_to(geom_direc, target_is_directory=True)
-        (ebin_direc / "data-out").mkdir()
+        write_geant_config(cfg_fn := (direc / f"{pfx}.config.file"), config_map)
+
+        with open(direc / "macro.mac", "w") as f:
+            print("/run/printProgress 10000", file=f)
+            print("/run/beamOn 1000000", file=f)
+
+        with open(script := direc / f"runme-{ea:.2f}-{eb:.2f}", "w") as f:
+            print("#!/bin/bash", file=f)
+            print(
+                # Assumes that everything is absolute paths (including the geometry metadata)
+                f"'{exe}' '{cfg_fn!s}' '{geom_direc / 'meta.json'!s}' '{(direc / 'macro.mac')!s}'",
+                file=f,
+            )
+        # read, write, executable by anyone
+        os.chmod(str(script), 0o700)
 
 
 def properly_weight(hg: npt.NDArray[np.int64]) -> npt.NDArray[np.uint64]:
