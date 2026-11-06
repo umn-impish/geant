@@ -83,7 +83,7 @@ void DetectorConstruction::importSolids() {
       configureSolid(key_, importPrimitive(key_, mdat), mdat);
     } else if (mdat.contains("file")) {
       auto fn = mdat["file"].get<std::string>();
-      if (fn.find(".stl") == std::string::npos) {
+      if (fn.find(".stl") == std::string::npos && fn.find(".ast") == std::string::npos) {
         throw std::runtime_error("Only supports .stl files");
       }
       auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
