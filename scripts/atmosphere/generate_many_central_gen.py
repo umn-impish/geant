@@ -30,10 +30,10 @@ def main():
 
     # For just the IMPISH flight model
     base_generator_meta = {
-        "beam_dx_mm": 110,
-        "beam_dy_mm": 60,
-        "beam_dz_mm": 102,
-        "radius_mm": 150,
+        "beam_dx_mm": 14 * 25.4,
+        "beam_dy_mm": 5.64 * 25.4,
+        "beam_dz_mm": 6.2 * 25.4,
+        "radius_mm": 200,
     }
 
     # Configure the global settings
@@ -51,7 +51,7 @@ def main():
             continue
         ea, eb = (float(x) for x in k[1:-1].split(","))
         config_map["save-prefix"] = (pfx := f"{ea:.1f}-{eb:.1f}-kev-matrix-row")
-        config_map["central-generator-config"] = (cen_gen_cfg_fn := f"{pfx}-meta.json")
+        config_map["central-generator-config"] = str(direc / (cen_gen_cfg_fn := f"{pfx}-meta.json"))
         cur_meta = af[k]
         with open(direc / cen_gen_cfg_fn, "w") as jf:
             json.dump(
@@ -105,7 +105,10 @@ def read_geant_config(fn: pathlib.Path) -> dict[str, object]:
             if not line:
                 continue
             key, type_, value = line.split()
-            ret[key] = cast_map[type_](value)
+            if type_ != "string":
+                ret[key] = cast_map[type_](float(value))
+            else:
+                ret[key] = value
     return ret
 
 
