@@ -1,5 +1,7 @@
 #pragma once
 
+#include <variant>
+
 #include <G4GeneralParticleSource.hh>
 #include <G4GenericIon.hh>
 #include <G4OpBoundaryProcess.hh>
