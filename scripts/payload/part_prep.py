@@ -7,6 +7,7 @@ from pathlib import Path
 from materials import materials
 
 
+FILE_EXT = "STL"
 SPECIAL_TYPES = {"yap": "scintillator", "lyso": "scintillator"}
 COMMON_META = {
     "scale": 1,
@@ -23,7 +24,7 @@ def format_file(file: Path, outdir: Path) -> tuple[Path, str]:
         if infile.read()[-1] != "\n":
             _ = infile.write("\n")
     material, new_name = file.name.split("_")
-    new_name = new_name.replace(".STL", ".stl")
+    new_name = new_name.replace(f".{FILE_EXT}", f".{FILE_EXT.lower()}")
     new_path = outdir / new_name
     _ = file.copy(new_path)
 
@@ -58,7 +59,7 @@ def main():
         OUTDIR.mkdir()
 
     parts = {}
-    for file in sorted(INDIR.glob("*.STL")):
+    for file in sorted(INDIR.glob(f"*.{FILE_EXT}")):
         path, material = format_file(file, OUTDIR)
         part_name = path.stem
         parts[part_name] = {
