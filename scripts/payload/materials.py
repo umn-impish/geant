@@ -21,8 +21,14 @@ materials = {
             },
         },
     },  # estimated from Wikipedia
+    "aluminum": {
+        "material": "G4_Al",
+    },
     "tungsten": {
         "material": "G4_W",
+    },
+    "teflon": {
+        "material": "G4_TEFLON",
     },
     "stainless-steel": {
         "material": "G4_STAINLESS-STEEL",
