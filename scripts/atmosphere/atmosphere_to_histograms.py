@@ -24,7 +24,7 @@ def main():
         description=(
             "Take a set of Geant4 directories with a 'passthrough' detector "
             "and process the momenta into histograms which can be sampled later. "
-            "Outputs an asdf file."
+            "Outputs a set of asdf files."
         )
     )
     parser.add_argument(
@@ -57,17 +57,10 @@ def main():
     )
     parser.add_argument(
         "-o",
-        "--max-ord",
-        type=int,
-        required=True,
-        help="The maximum scattering order to include in the atmosphere matrix",
-    )
-    parser.add_argument(
-        "-f",
-        "--output-file",
+        "--output-direc",
         type=str,
         required=True,
-        help="The ASDF file to which we write out all of the histograms",
+        help="The directory to which we write out all of the histograms. Each momentum histogram is its own .asdf within the .tar.",
     )
     parser.add_argument(
         "-a",
@@ -89,66 +82,54 @@ def main():
         high = start + run_num * de
         return (high - de, high)
 
-    max_momentum_order = program_args.max_ord
-
-    out_fn = program_args.output_file
-    if not out_fn.endswith(".asdf"):
-        out_fn += ".asdf"
-
-    with asdf.AsdfFile() as af:
-        af.write_to(out_fn)
-
-    direcs = sorted(pathlib.Path(program_args.direc).iterdir())
-    ncpu = cast(int, os.cpu_count())
-    splits: list[np.ndarray] = np.array_split(ary=direcs, indices_or_sections=ncpu)  # pyright: ignore[reportCallIssue, reportArgumentType]
-    args = [
-        (i, s, out_fn, program_args.elevation_angle) for (i, s) in enumerate(splits)
-    ]
-
-    def work(args: tuple[int, np.ndarray, str, float]) -> None:
-        i, direcs, fn_base, elev = args
-        out_fn = f"temp{i}-" + fn_base
-        with asdf.AsdfFile() as af:
-            af.write_to(out_fn)
+    def work(args: tuple[int, np.ndarray, pathlib.Path, float]) -> None:
+        i, direcs, output_direc, elev = args
 
         for d in direcs:
             min_e, max_e = energy_bin_from_direc(d)
             k = str((min_e, max_e))
-            with asdf.open(out_fn, mode="r") as af:
-                if k in af.tree:  # pyright: ignore[reportOperatorIssue]
-                    # Already have this bin computed
-                    continue
 
             by_track = load_momenta_per_track(direc=d, rotation_angle=elev)
-            by_order = split_momenta_by_scatter_order(
-                by_track, max_order=max_momentum_order
-            )
+            # Squash all of the hits into a single array.
+            all_hits = np.zeros((sum(len(v) for v in by_track.values()), 3))
+            i = 0
+            for t in by_track.values():
+                end = len(t)
+                all_hits[i : i + end] = np.array(t)
+                i += end
 
             # Number of momentum space bins in the resulting histograms, one per dimension
-            num_bins = 64
-            cartesian_bin_edges = np.linspace(-max_e, max_e, num_bins + 1)
-            momenta_hist = histogram_momenta(
-                edges=cartesian_bin_edges, momenta=by_order
+            cartesian_bin_edges = np.arange(-max_e, max_e + de, de)
+            momenta_hist, _ = np.histogramdd(
+                sample=all_hits, bins=[cartesian_bin_edges] * 3
             )
+            if momenta_hist.max() > (2**16 - 1):
+                raise ValueError(
+                    "More hits than a 16-bit unsigned int in a single energy bin"
+                )
 
-            with asdf.open(out_fn, mode="rw") as af:
-                af.tree[k] = {  # pyright: ignore[reportIndexIssue]
+            momenta_hist = momenta_hist.astype(np.uint16)
+            temp_fn = output_direc / f"{min_e}-{max_e}.asdf"
+            af = asdf.AsdfFile(
+                tree={
                     "bin_edges": cartesian_bin_edges,
-                } | momenta_hist
-                af.update(all_array_compression="bzp2")
-
+                    "histogram": momenta_hist,
+                    "total_counts": all_hits.shape[0],
+                }
+            )
+            af.write_to(temp_fn, all_array_compression="bzp2")
             print(f"done {min_e, max_e}")
 
+    direcs = sorted(pathlib.Path(program_args.direc).iterdir())
+    ncpu = cast(int, os.cpu_count())
+    splits: list[np.ndarray] = np.array_split(ary=direcs, indices_or_sections=ncpu)  # pyright: ignore[reportCallIssue, reportArgumentType]
+    out_dir = pathlib.Path(program_args.output_direc)
+    out_dir.mkdir(exist_ok=True)
+    args = [
+        (i, s, out_dir, program_args.elevation_angle) for (i, s) in enumerate(splits)
+    ]
     with mp.Pool(ncpu) as p:
         p.map(work, args)
-
-    # Merge the temporary files
-    for f in pathlib.Path(".").glob("temp*"):
-        with asdf.open(f, mode="r") as af_tmp, asdf.open(out_fn, mode="rw") as af:
-            af.tree |= af_tmp.tree.copy()  # pyright: ignore[reportOperatorIssue, reportAttributeAccessIssue]
-            af.update(all_array_compression="bzp2")
-        f.unlink(missing_ok=True)
-        print("done merging", f)
 
 
 def load_momenta_per_track(
@@ -179,7 +160,9 @@ def load_momenta_per_track(
     This is th simplify the creation of response matrices later.
     """
     momenta_by_track = defaultdict(list)
-    rot_mat = Rotation.from_euler("y", angles=rotation_angle - 90, degrees=True).as_matrix()
+    rot_mat = Rotation.from_euler(
+        "y", angles=rotation_angle - 90, degrees=True
+    ).as_matrix()
 
     with open(direc / "cryst-out.tab") as f:
         for line in f:
@@ -197,7 +180,10 @@ def load_momenta_per_track(
             pos, mom = collapsed[:n_evt], collapsed[n_evt:]
             pos = [tuple(float(x) for x in p[1:-1].split(",")) for p in pos]
             # Rotate each momentum so that its nominal axis (along the LoS) aligns with the Z axis
-            mom = [rot_mat @ np.array(tuple(float(x) for x in m[1:-1].split(","))) for m in mom]
+            mom = [
+                rot_mat @ np.array(tuple(float(x) for x in m[1:-1].split(",")))
+                for m in mom
+            ]
 
             for k, x, p in zip(these_events, pos, mom):
                 # Ignore the position stored in x[:2]
@@ -255,47 +241,6 @@ def sample_nd_histogram(
         samples[:, d] = np.random.uniform(low_edges, high_edges, size=num_samples)
 
     return samples
-
-
-def histogram_momenta(
-    edges: np.ndarray, momenta: list[list[np.ndarray]]
-) -> dict[str, np.ndarray]:
-    """Given a set of momentum vectors, whose norms are particle energy,
-    make a 3D histogram across a sensible set of bin edges.
-    The idea is that you can take draws from this histogram at a given energy bin to
-    approximate the effect of the atmosphere.
-
-    The histograms are split by scattering order. The total counts per histogram
-    is analogous to the total probability that a given photon will originate from that
-    scattering order.
-    Say scattering order 0 has 90 counts, and order 1 has 10 counts, and higher orders have 0 counts.
-    The relative sampling probabilities are then
-
-        `[0.9. 0.1, 0]`
-
-    where the list index corresponds to the scattering order.
-    """
-    # Scatter order after which we truncate the distributions
-    histograms_by_order = []
-    total_counts = []
-    for ord_ in range(len(momenta)):
-        momentum_order = np.array(momenta[ord_])
-        try:
-            momentum_hg, _ = np.histogramdd(
-                sample=momentum_order, bins=(edges, edges, edges)
-            )
-            histograms_by_order.append(momentum_hg)
-        except ValueError:
-            # There are no hits to histogram
-            histograms_by_order.append(
-                np.zeros((edges.size - 1, edges.size - 1, edges.size - 1))
-            )
-        # The total counts will weight the first roll: what order do we use?
-        total_counts.append(momentum_order.shape[0])
-    return {
-        "momentum_histograms": np.array(histograms_by_order, dtype=int),
-        "total_counts": np.array(total_counts, dtype=int),
-    }
 
 
 if __name__ == "__main__":
