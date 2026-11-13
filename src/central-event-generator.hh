@@ -34,13 +34,13 @@ struct CentralEventGenerator : public G4ParticleGun {
   CentralEventGenerator(const G4double dx, const G4double dy, const G4double dz,
                         const G4double radius,
                         const std::vector<double> &momentum_bins,
-                        const std::vector<uint64_t> &momentum_hg);
+                        const std::vector<uint16_t> &momentum_hg);
 
 private:
   static thread_local std::random_device rd;
   static thread_local std::mt19937 random_gen;
   // The weights are the number of hits per momentum bin.
-  std::discrete_distribution<uint64_t> momentum_dist;
+  std::discrete_distribution<uint16_t> momentum_dist;
   // An offset to apply to initial positions of rays emitting from the spherical
   // edge
   std::uniform_real_distribution<double> pos_unif;

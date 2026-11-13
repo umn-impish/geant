@@ -1,11 +1,11 @@
 #include <fstream>
 
-#include <nlohmann/json.hpp>
 #include <G4Gamma.hh>
 #include <G4SystemOfUnits.hh>
 #include <central-event-generator.hh>
-
-using json = nlohmann::json;
+#include <iterator>
+#include <msgpack.hpp>
+#include <zlib.h>
 
 thread_local std::random_device CentralEventGenerator::rd{};
 thread_local std::mt19937 CentralEventGenerator::random_gen{
@@ -14,7 +14,7 @@ thread_local std::mt19937 CentralEventGenerator::random_gen{
 CentralEventGenerator::CentralEventGenerator(
     const G4double dx, const G4double dy, const G4double dz,
     const G4double radius_, const std::vector<double> &momentum_bins_,
-    const std::vector<uint64_t> &momentum_hg)
+    const std::vector<uint16_t> &momentum_hg)
     : beam_dx{dx}, beam_dy{dy}, beam_dz{dz}, radius{radius_},
       momentum_bins{momentum_bins_}, entries_per_axis{momentum_bins.size() - 1},
       momentum_dist{momentum_hg.begin(), momentum_hg.end()},
@@ -30,13 +30,40 @@ CentralEventGenerator::CentralEventGenerator(
 
 std::unique_ptr<CentralEventGenerator>
 CentralEventGenerator::from(const std::string &config_fn) {
-  auto dat = json::parse(std::ifstream{config_fn});
-  auto momentum_hg = dat["momentum_hg_kev"].get<std::vector<uint64_t>>();
+  std::ifstream cfg_file{config_fn, std::ios::binary};
+  std::vector<char> cfg_buf(std::istreambuf_iterator<char>{cfg_file},
+                            std::istreambuf_iterator<char>{});
+  auto handle = msgpack::unpack(cfg_buf.data(), cfg_buf.size());
+  auto des = handle.get();
+  std::unordered_map<std::string, msgpack::object> cfg_map;
+  des.convert(cfg_map);
+
+  // Extract the compressed histogram
+  auto mom_hg_bin = cfg_map["momentum_hg_kev"].via.bin;
+  auto num_hg_elts = cfg_map["num_momentum_entries"].as<uLongf>();
+  std::vector<uint16_t> momentum_hg(num_hg_elts);
+  auto num_bytes = 2 * num_hg_elts;
+  int decomp_res =
+      uncompress(reinterpret_cast<Bytef *>(momentum_hg.data()), &num_bytes,
+                 reinterpret_cast<const Bytef *>(mom_hg_bin.ptr),
+                 static_cast<uLongf>(mom_hg_bin.size));
+  if (decomp_res != Z_OK) {
+    std::ostringstream oss;
+    oss << "Failed to decompress momentum histogram: " << zError(decomp_res)
+        << std::endl
+        << "Num elts was " << num_hg_elts << " and vector size was "
+        << momentum_hg.size() << ";\n"
+        << "Compressed size was " << static_cast<uLongf>(mom_hg_bin.size) << std::endl
+        << "Number of elements written into histogram: " << num_hg_elts << std::endl;
+    throw std::runtime_error{oss.str()};
+  }
+
   return std::make_unique<CentralEventGenerator>(
-      dat["beam_dx_mm"].get<double>() * mm,
-      dat["beam_dy_mm"].get<double>() * mm,
-      dat["beam_dz_mm"].get<double>() * mm, dat["radius_mm"].get<double>() * mm,
-      dat["momentum_bins_kev"].get<std::vector<double>>(), momentum_hg);
+      cfg_map["beam_dx_mm"].as<double>() * mm,
+      cfg_map["beam_dy_mm"].as<double>() * mm,
+      cfg_map["beam_dz_mm"].as<double>() * mm,
+      cfg_map["radius_mm"].as<double>() * mm,
+      cfg_map["momentum_bins_kev"].as<std::vector<double>>(), momentum_hg);
 }
 
 void CentralEventGenerator::GeneratePrimaryVertex(G4Event *evt) {

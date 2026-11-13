@@ -20,11 +20,29 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+# MessagePack: use for very large meta files
+FetchContent_Declare(
+    msgpack
+    GIT_REPOSITORY https://github.com/msgpack/msgpack-c.git
+    GIT_TAG        cpp-9.0.0
+)
+FetchContent_MakeAvailable(msgpack)
+
+FetchContent_Declare(
+    zlib
+    GIT_REPOSITORY https://github.com/madler/zlib.git
+    GIT_TAG        v1.4
+)
+FetchContent_MakeAvailable(zlib)
+
+
 target_link_libraries(
     cadmesh-wrapper
     ${Geant4_LIBRARIES}
     tetgen
     nlohmann_json::nlohmann_json
+    msgpack-cxx
+    zlib
 )
 
 target_compile_options(cadmesh-wrapper PRIVATE -Wall -Wextra -Wpedantic -Werror)
