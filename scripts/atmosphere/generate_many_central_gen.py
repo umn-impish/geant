@@ -1,11 +1,10 @@
 import argparse
-import json
 import os
 import pathlib
+import zlib
 
 import asdf
-import numpy as np
-import numpy.typing as npt
+import msgpack
 
 
 def main():
@@ -17,13 +16,13 @@ def main():
         )
     )
     p.add_argument("--output-directory", type=str)
-    p.add_argument("--momentum-fn", type=str)
+    p.add_argument("--momentum-hg-direc", type=str)
     p.add_argument("--config-fn", type=str)
     p.add_argument("--geant-executable", type=str)
     p.add_argument("--geometry-directory", type=str)
     args = p.parse_args()
     direc = pathlib.Path(args.output_directory).resolve()
-    momentum_fn = pathlib.Path(args.momentum_fn).resolve()
+    momentum_direc = pathlib.Path(args.momentum_hg_direc).resolve()
     config_fn = pathlib.Path(args.config_fn).resolve()
     exe = pathlib.Path(args.geant_executable).resolve()
     geom_direc = pathlib.Path(args.geometry_directory).resolve()
@@ -44,33 +43,33 @@ def main():
     direc.mkdir(exist_ok=True)
     config_map["data-dir"] = str((direc / "data-out").resolve())
     (direc / "data-out").mkdir(exist_ok=True)
-    af = asdf.open(momentum_fn)
-    for k in af.keys():  # noqa: SIM118
-        k = str(k)
-        if not k.startswith("("):
+    for file in momentum_direc.iterdir():
+        print("working on", file)
+        if not file.name.endswith(".asdf"):
             continue
-        ea, eb = (float(x) for x in k[1:-1].split(","))
-        config_map["save-prefix"] = (pfx := f"{ea:.1f}-{eb:.1f}-kev-matrix-row")
-        config_map["central-generator-config"] = str(direc / (cen_gen_cfg_fn := f"{pfx}-meta.json"))
-        cur_meta = af[k]
-        with open(direc / cen_gen_cfg_fn, "w") as jf:
-            json.dump(
-                {
-                    "momentum_bins_kev": cur_meta["bin_edges"].tolist(),
-                    "momentum_hg_kev": properly_weight(
-                        cur_meta["momentum_histograms"]
-                    ).tolist(),
-                }
-                | base_generator_meta,
-                jf,
-            )
+        config_map["save-prefix"] = (pfx := f"{file.stem}-kev-matrix-row")
+        config_map["central-generator-config"] = str(
+            cen_gen_cfg_fn := (direc / f"{pfx}-meta.msgpk")
+        )
+        cur_meta = asdf.open(file)
+        out = base_generator_meta | {
+            # Flatten and compress the histogram data using zlib
+            "momentum_hg_kev": zlib.compress(
+                cur_meta["histogram"].ravel().astype("<u2"), level=6
+            ),
+            "num_momentum_entries": cur_meta["histogram"].size,
+            "momentum_bins_kev": cur_meta["bin_edges"].tolist(),
+        }
+        with open(direc / cen_gen_cfg_fn, "wb") as f:
+            msgpack.pack(out, f)
+
         write_geant_config(cfg_fn := (direc / f"{pfx}.config.file"), config_map)
 
         with open(direc / "macro.mac", "w") as f:
             print("/run/printProgress 10000", file=f)
             print("/run/beamOn 1000000", file=f)
 
-        with open(script := direc / f"runme-{ea:.2f}-{eb:.2f}", "w") as f:
+        with open(script := direc / f"runme-{file.stem}", "w") as f:
             print("#!/bin/bash", file=f)
             print(
                 # Assumes that everything is absolute paths (including the geometry metadata)
@@ -79,19 +78,7 @@ def main():
             )
         # read, write, executable by anyone
         os.chmod(str(script), 0o700)
-
-
-def properly_weight(hg: npt.NDArray[np.int64]) -> npt.NDArray[np.uint64]:
-    """Given a 4D hypercube of momentum histograms, weight and sum constituent 3D cubes
-    by total counts per histogram and return the flattened cubic result."""
-    total = hg.sum()
-    composite = np.zeros_like(hg[0], dtype=np.uint64)
-    for subh in hg:
-        # Relative unnormalized probabilities;
-        # we want the resulting histogram to be unisigned 64-bit integers
-        rel_prob = int(1e4 * np.nan_to_num(subh.sum() / total))
-        composite += rel_prob * subh.astype(np.uint64)
-    return composite.ravel().astype(np.uint64)
+        print("done", file)
 
 
 def read_geant_config(fn: pathlib.Path) -> dict[str, object]:
