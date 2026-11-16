@@ -108,15 +108,14 @@ def main():
             # Number of momentum space bins in the resulting histograms, one per dimension
             cartesian_bin_edges = np.arange(-max_e, max_e + de, de)
             momenta_hist, _ = np.histogramdd(
-                sample=all_hits, bins=[cartesian_bin_edges] * 3,
-                weights=weights
+                sample=all_hits, bins=[cartesian_bin_edges] * 3, weights=weights
             )
-            if momenta_hist.max() > (2**16 - 1):
+            if momenta_hist.max() > (2**32 - 1):
                 raise ValueError(
-                    "More hits than a 16-bit unsigned int in a single energy bin"
+                    "More hits than a 32-bit unsigned int in a single energy bin"
                 )
 
-            momenta_hist = momenta_hist.astype(np.uint16)
+            momenta_hist = momenta_hist.astype(np.uint32)
             temp_fn = output_direc / f"{min_e}-{max_e}.asdf"
             af = asdf.AsdfFile(
                 tree={

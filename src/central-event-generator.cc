@@ -42,7 +42,7 @@ CentralEventGenerator::from(const std::string &config_fn) {
   auto mom_hg_bin = cfg_map["momentum_hg_kev"].via.bin;
   auto num_hg_elts = cfg_map["num_momentum_entries"].as<uLongf>();
   std::vector<uint32_t> momentum_hg(num_hg_elts);
-  auto num_bytes = 2 * num_hg_elts;
+  auto num_bytes = sizeof(decltype(momentum_hg)::value_type) * num_hg_elts;
   int decomp_res =
       uncompress(reinterpret_cast<Bytef *>(momentum_hg.data()), &num_bytes,
                  reinterpret_cast<const Bytef *>(mom_hg_bin.ptr),

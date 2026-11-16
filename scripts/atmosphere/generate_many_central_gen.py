@@ -55,7 +55,7 @@ def main():
         out = base_generator_meta | {
             # Flatten and compress the histogram data using zlib
             "momentum_hg_kev": zlib.compress(
-                cur_meta["histogram"].ravel().astype("<u2"), level=6
+                cur_meta["histogram"].ravel().astype("<u4"), level=6
             ),
             "num_momentum_entries": cur_meta["histogram"].size,
             "momentum_bins_kev": cur_meta["bin_edges"].tolist(),
