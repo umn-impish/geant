@@ -14,7 +14,7 @@ thread_local std::mt19937 CentralEventGenerator::random_gen{
 CentralEventGenerator::CentralEventGenerator(
     const G4double dx, const G4double dy, const G4double dz,
     const G4double radius_, const std::vector<double> &momentum_bins_,
-    const std::vector<uint16_t> &momentum_hg)
+    const std::vector<uint32_t> &momentum_hg)
     : beam_dx{dx}, beam_dy{dy}, beam_dz{dz}, radius{radius_},
       momentum_bins{momentum_bins_}, entries_per_axis{momentum_bins.size() - 1},
       momentum_dist{momentum_hg.begin(), momentum_hg.end()},
@@ -41,7 +41,7 @@ CentralEventGenerator::from(const std::string &config_fn) {
   // Extract the compressed histogram
   auto mom_hg_bin = cfg_map["momentum_hg_kev"].via.bin;
   auto num_hg_elts = cfg_map["num_momentum_entries"].as<uLongf>();
-  std::vector<uint16_t> momentum_hg(num_hg_elts);
+  std::vector<uint32_t> momentum_hg(num_hg_elts);
   auto num_bytes = 2 * num_hg_elts;
   int decomp_res =
       uncompress(reinterpret_cast<Bytef *>(momentum_hg.data()), &num_bytes,
