@@ -98,10 +98,18 @@ def main():
                 all_hits[i : i + end] = np.array(t)
                 i += end
 
+            # Because of the planar detector geometry, we need to weight by
+            # 1 / (angle off vertical), as in 1995ApJ...439..963P appendix
+            rad = np.sqrt(np.sum(all_hits**2, axis=1))
+            z = -all_hits[:, 2]
+            # Weight = 1 / abs(cos(polar angle, off Z axis)).
+            weights = abs(rad / z)
+
             # Number of momentum space bins in the resulting histograms, one per dimension
             cartesian_bin_edges = np.arange(-max_e, max_e + de, de)
             momenta_hist, _ = np.histogramdd(
-                sample=all_hits, bins=[cartesian_bin_edges] * 3
+                sample=all_hits, bins=[cartesian_bin_edges] * 3,
+                weights=weights
             )
             if momenta_hist.max() > (2**16 - 1):
                 raise ValueError(
