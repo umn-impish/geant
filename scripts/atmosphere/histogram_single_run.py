@@ -96,7 +96,7 @@ def main():
     # All momentum vectors are unit vectors
     cosine = pz / 1.0
     momentum_hg, *_ = np.histogramdd(
-        (all_momenta.T * energies).T,
+        (all_momenta.T * all_energies).T,
         bins=(energy_bins, energy_bins, energy_bins),
         weights=(1 / np.abs(cosine)),
     )
