@@ -37,6 +37,13 @@ def main():
         help="The right energy bin edge for this G4 run",
     )
     parser.add_argument(
+        "-n",
+        "--num-momentum-bins",
+        type=int,
+        required=True,
+        help="Number of momentum bins to span (-e_max, e_max); even number",
+    )
+    parser.add_argument(
         "-o",
         "--output-direc",
         type=str,
@@ -44,6 +51,9 @@ def main():
         help="The directory to which the .asdf histogram is saved",
     )
     args = parser.parse_args()
+
+    if args.num_momentum_bins % 2 != 0:
+        raise ValueError("Number of momentum bins must be an even number")
 
     print("Load momenta")
     all_momenta = []
@@ -71,11 +81,14 @@ def main():
     print("Done loading; time to histogram")
 
     # Energy bins span from (-max --> +max)
-    # with uniform delta E.
+    # with uniform delta E, and the origin is at the edge of a bin
+    # by construction.
     # The momentum is in units of energy (E = pc with c = 1)
     emin, emax = args.e_min, args.e_max
-    delta = emax - emin
-    energy_bins = np.arange(-emax, emax + delta, delta)
+    half_num = args.num_momentum_bins // 2
+    energy_bins = np.concatenate(
+        (np.linspace(-emax, 0, half_num), np.linspace(0, emax, half_num))
+    )
 
     # Bin the momenta weighted by (1 / z-axis angle cosine)
     # See: Shultis, J. K., & Faw, R. E. (2011). An MCNP primer, Sec 3.6.2
