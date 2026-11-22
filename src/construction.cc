@@ -83,7 +83,8 @@ void DetectorConstruction::importSolids() {
       configureSolid(key_, importPrimitive(key_, mdat), mdat);
     } else if (mdat.contains("file")) {
       auto fn = mdat["file"].get<std::string>();
-      if (fn.find(".stl") == std::string::npos && fn.find(".ast") == std::string::npos) {
+      if (fn.find(".stl") == std::string::npos &&
+          fn.find(".ast") == std::string::npos) {
         throw std::runtime_error("Only supports .stl files");
       }
       auto mesh = CADMesh::TessellatedMesh::FromSTL(fn);
@@ -135,8 +136,8 @@ G4VSolid *DetectorConstruction::importPrimitive(const std::string &name,
 void DetectorConstruction::configureSolid(const std::string &name,
                                           G4VSolid *solid, const json &mdat) {
   // for generating random colors
-  static std::default_random_engine en{std::random_device{}()};
-  static std::uniform_real_distribution<double> dist(0, 1);
+  thread_local static std::default_random_engine en{std::random_device{}()};
+  thread_local static std::uniform_real_distribution<double> dist(0, 1);
 
   std::vector<double> ea = mdat["euler_rotation"];
   auto rotMat = new G4RotationMatrix;
@@ -196,7 +197,7 @@ void DetectorConstruction::configureVolume(G4LogicalVolume *lv,
     perfectLogVols.push_back(lv);
   } else if (type == "passthru_detector") {
     passthruLogVols.push_back(lv);
-  }else if (type != "passive") {
+  } else if (type != "passive") {
     throw std::runtime_error{"Unknown geometry type: " + type};
   }
   /*
