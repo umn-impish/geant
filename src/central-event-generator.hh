@@ -6,19 +6,21 @@
 #include <configs.hh>
 
 /**
-  CentralEventGenerator: fire events from a fixed radius at a
-  detector/instrument volume. Allows you to offset a random amount from the
-  point by |dx, dy, dz|. The particles launched are directed towards the origin
-  offset by that amount. The momentum histogram is assumed to be a cube with
+  CentralEventGenerator: fire events from an arbitrary momentum distribution
+  towards a random point in an instrument volume.
+  The particles launched are directed towards a randomly-generated point
+  within [-d\vec{r}/2, d\vec{r}/2].
+  The momentum histogram is assumed to be a cube with
   equal binning along px, py, pz. The particle is always a photon; the momentum
   is equivalent to energy (E = pc). The momentum units are in keV.
 */
 struct CentralEventGenerator : public G4ParticleGun {
-  // How far the beam can move off the shell along (x, y, z)
-  const G4double beam_dx, beam_dy, beam_dz;
-  // The sphere radius from which particles are nominally launched,
-  // towards the origin
-  const G4double radius;
+  // Dimensions which bound the instrument under investigation,
+  // assuming it's centered at the origin
+  const G4double bounding_dx, bounding_dy, bounding_dz;
+  // How far to rotate the momentum distribution along the polar angle.
+  // Useful if you want to simulate some pointing vs. source elevation
+  const G4double polar_rotation;
   // Momentum bin edges (1D; assumes cube of momentum)
   const std::vector<double> momentum_bins;
   // How many momentum elements per axis of cube
@@ -32,7 +34,7 @@ struct CentralEventGenerator : public G4ParticleGun {
   CentralEventGenerator() = delete;
   ~CentralEventGenerator() = default;
   CentralEventGenerator(const G4double dx, const G4double dy, const G4double dz,
-                        const G4double radius,
+                        const G4double rotation,
                         const std::vector<double> &momentum_bins,
                         const std::vector<uint32_t> &momentum_hg);
 

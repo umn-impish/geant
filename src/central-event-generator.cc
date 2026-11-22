@@ -1,6 +1,9 @@
+#include <G4ThreeVector.hh>
+#include <cmath>
 #include <fstream>
 
 #include <G4Gamma.hh>
+#include <G4RotationMatrix.hh>
 #include <G4SystemOfUnits.hh>
 #include <central-event-generator.hh>
 #include <iterator>
@@ -13,10 +16,11 @@ thread_local std::mt19937 CentralEventGenerator::random_gen{
 
 CentralEventGenerator::CentralEventGenerator(
     const G4double dx, const G4double dy, const G4double dz,
-    const G4double radius_, const std::vector<double> &momentum_bins_,
+    const G4double rotation, const std::vector<double> &momentum_bins_,
     const std::vector<uint32_t> &momentum_hg)
-    : beam_dx{dx}, beam_dy{dy}, beam_dz{dz}, radius{radius_},
-      momentum_bins{momentum_bins_}, entries_per_axis{momentum_bins.size() - 1},
+    : bounding_dx{dx}, bounding_dy{dy}, bounding_dz{dz},
+      polar_rotation{rotation}, momentum_bins{momentum_bins_},
+      entries_per_axis{momentum_bins.size() - 1},
       momentum_dist{momentum_hg.begin(), momentum_hg.end()},
       pos_unif{-0.5, 0.5} {
   if (entries_per_axis * entries_per_axis * entries_per_axis !=
@@ -38,11 +42,16 @@ CentralEventGenerator::from(const std::string &config_fn) {
   std::unordered_map<std::string, msgpack::object> cfg_map;
   des.convert(cfg_map);
 
+  auto momentum_bins = cfg_map["momentum_bins_kev"].as<std::vector<double>>();
+
   // Extract the compressed histogram
-  auto mom_hg_bin = cfg_map["momentum_hg_kev"].via.bin;
-  auto num_hg_elts = cfg_map["num_momentum_entries"].as<uLongf>();
+  auto entries_per_axis = momentum_bins.size() - 1;
+  // The number of elements in the histogram we expect to process
+  auto num_hg_elts = static_cast<uLongf>(entries_per_axis * entries_per_axis *
+                                         entries_per_axis);
   std::vector<uint32_t> momentum_hg(num_hg_elts);
   auto num_bytes = sizeof(decltype(momentum_hg)::value_type) * num_hg_elts;
+  auto mom_hg_bin = cfg_map["momentum_hg_kev"].via.bin;
   int decomp_res =
       uncompress(reinterpret_cast<Bytef *>(momentum_hg.data()), &num_bytes,
                  reinterpret_cast<const Bytef *>(mom_hg_bin.ptr),
@@ -53,17 +62,19 @@ CentralEventGenerator::from(const std::string &config_fn) {
         << std::endl
         << "Num elts was " << num_hg_elts << " and vector size was "
         << momentum_hg.size() << ";\n"
-        << "Compressed size was " << static_cast<uLongf>(mom_hg_bin.size) << std::endl
-        << "Number of elements written into histogram: " << num_hg_elts << std::endl;
+        << "Compressed size was " << static_cast<uLongf>(mom_hg_bin.size)
+        << std::endl
+        << "Number of elements written into histogram: " << num_hg_elts
+        << std::endl;
     throw std::runtime_error{oss.str()};
   }
 
   return std::make_unique<CentralEventGenerator>(
-      cfg_map["beam_dx_mm"].as<double>() * mm,
-      cfg_map["beam_dy_mm"].as<double>() * mm,
-      cfg_map["beam_dz_mm"].as<double>() * mm,
-      cfg_map["radius_mm"].as<double>() * mm,
-      cfg_map["momentum_bins_kev"].as<std::vector<double>>(), momentum_hg);
+      cfg_map["bounding_dx_mm"].as<double>() * mm,
+      cfg_map["bounding_dy_mm"].as<double>() * mm,
+      cfg_map["bounding_dz_mm"].as<double>() * mm,
+      cfg_map["polar_rotation_degrees"].as<double>() * deg, momentum_bins,
+      momentum_hg);
 }
 
 void CentralEventGenerator::GeneratePrimaryVertex(G4Event *evt) {
@@ -81,31 +92,49 @@ void CentralEventGenerator::GeneratePrimaryVertex(G4Event *evt) {
     return this->momentum_bins[idx] +
            unif(random_gen) * (momentum_bins[idx + 1] - momentum_bins[idx]);
   };
-  auto px = gen_mom(i) * keV;
-  auto py = gen_mom(j) * keV;
-  auto pz = gen_mom(k) * keV;
-  auto energy = std::sqrt(px * px + py * py + pz * pz);
-  // Normalize the momentum to its direction
-  auto pxhat = px / energy, pyhat = py / energy, pzhat = pz / energy;
+  G4ThreeVector p{gen_mom(i) * keV, gen_mom(j) * keV, gen_mom(k) * keV};
+  auto energy = p.r();
+  auto phat = p.unit().rotate(polar_rotation, G4ThreeVector{0, 1, 0});
 
-  // Nominal position: somewhere on the sphere. The origin of the ray along the
-  // momentum connecting from the shell to the origin.
-  G4ThreeVector nom{-radius * px / energy, -radius * py / energy,
-                    -radius * pz / energy};
-  // Add a random offset ~|dx, dy, dz| onto the nominal position.
-  // This is so that not every single ray passes through the origin.
-  // The magnitude is set by the extent of your simulated volume.
-  auto dx_scale = pos_unif(random_gen), dy_scale = pos_unif(random_gen),
-       dz_scale = pos_unif(random_gen);
-  G4ThreeVector pos{nom[0] + dx_scale * beam_dx, nom[1] + dy_scale * beam_dy,
-                    nom[2] + dz_scale * beam_dz};
+  // Pick one of the directions proporitonal to the projected area of the box
+  // that we see from the current momentum vantage point.
+  // Area [ij] is foreshortened by abs(angle of rotation) around axis [k];
+  // refer to this area as a[k].
+  auto ax = bounding_dy * bounding_dz * std::abs(phat.x());
+  auto ay = bounding_dx * bounding_dz * std::abs(phat.y());
+  auto az = bounding_dx * bounding_dy * std::abs(phat.z());
+  auto atot = ax + ay + az;
 
-  // Set the physical parameters, and generate the particle
-  SetParticlePosition(pos);
+  // Generate a random amount of projected area and "bin" it into face
+  // probability bins using if/else statements.
+  // We are generating a random point on the bounding box face.
+  auto area_thresh = unif(random_gen) * atot;
+  G4double x, y, z;
+  if (area_thresh < ax) {
+    x = 0.5 * (phat.x() > 0 ? -bounding_dx : bounding_dx);
+    y = pos_unif(random_gen) * bounding_dy;
+    z = pos_unif(random_gen) * bounding_dz;
+  } else if (area_thresh < (ax + ay)) {
+    x = pos_unif(random_gen) * bounding_dx;
+    y = 0.5 * (phat.y() > 0 ? -bounding_dy : bounding_dy);
+    z = pos_unif(random_gen) * bounding_dz;
+
+  } else {
+    x = pos_unif(random_gen) * bounding_dx;
+    y = pos_unif(random_gen) * bounding_dy;
+    z = 0.5 * (phat.z() > 0 ? -bounding_dz : bounding_dz);
+  }
+
+  // Originate the photon a short distance away from the bounding box
+  auto eps = 1 * um;
+  G4ThreeVector origin_r(x, y, z);
+  origin_r -= eps * phat;
+
+  SetParticlePosition(origin_r);
   // Pixellating the (px, py, pz) bins can lead to violation of the max energy--
   // the energy histogram uses cubic voxels, but the actual bounding surface is
   // a sphere. Cap the energy at the upper edge of the distribution.
   SetParticleEnergy(std::min(energy, momentum_bins.back() * keV));
-  SetParticleMomentumDirection({pxhat, pyhat, pzhat});
+  SetParticleMomentumDirection(phat);
   G4ParticleGun::GeneratePrimaryVertex(evt);
 }
