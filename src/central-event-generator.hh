@@ -30,6 +30,8 @@ struct CentralEventGenerator : public G4ParticleGun {
   from(const std::string &config_file);
 
   void GeneratePrimaryVertex(G4Event *) override final;
+  // Projected area of current vertex
+  double projected_area();
 
   CentralEventGenerator() = delete;
   ~CentralEventGenerator() = default;
@@ -46,4 +48,7 @@ private:
   // An offset to apply to initial positions of rays emitting from the spherical
   // edge
   std::uniform_real_distribution<double> pos_unif;
+
+  // The projected area of the current photon
+  double atot;
 };

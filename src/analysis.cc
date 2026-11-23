@@ -146,11 +146,24 @@ void Analysis::addIncidentEnergy(long double e) {
   incidentEnergiesChunk.push_back(e);
 }
 
+/// Required when producing full (angularly-weighted) response matrices.
+void Analysis::addProjectedArea(double a) {
+  G4AutoLock l(&dataMux);
+  projAreasChunk.push_back(a);
+}
+
 void Analysis::saveIncidentSpectrumChunk() {
-  for (const auto &e : incidentEnergiesChunk)
-    specIn.file() << e / keV << std::endl;
+  for (size_t i = 0; i < incidentEnergiesChunk.size(); ++i) {
+    auto e = incidentEnergiesChunk[i];
+    specIn.file() << e / keV;
+    if (i < projAreasChunk.size()) {
+      specIn.file() << ' ' << projAreasChunk[i] / cm2;
+    }
+    specIn.file() << std::endl;
+  }
 
   incidentEnergiesChunk.clear();
+  projAreasChunk.clear();
 }
 
 void Analysis::printSiHits(const std::vector<VirtualHit *> *vec) {

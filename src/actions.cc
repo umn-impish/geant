@@ -12,6 +12,13 @@
 #include <G4ProcessManager.hh>
 #include <G4SystemOfUnits.hh>
 
+namespace {
+// Overload std::variant calls with specialized lambdas
+template <class... Ts> struct overloaded : Ts... {
+  using Ts::operator()...;
+};
+} // namespace
+
 ActionInitialization::ActionInitialization() : G4VUserActionInitialization() {}
 
 ActionInitialization::~ActionInitialization() {}
@@ -44,13 +51,19 @@ PrimaryGeneratorAction::PrimaryGeneratorAction()
 PrimaryGeneratorAction::~PrimaryGeneratorAction() {}
 
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event *evt) {
-  std::visit(
-      [evt](auto &g) {
-        g->GeneratePrimaryVertex(evt);
-        double e = g->GetParticleEnergy();
-        Analysis::instance().addIncidentEnergy(e);
-      },
-      gen);
+  std::visit(overloaded{[evt](std::unique_ptr<G4GeneralParticleSource> &g) {
+                          g->GeneratePrimaryVertex(evt);
+                          double e = g->GetParticleEnergy();
+                          Analysis::instance().addIncidentEnergy(e);
+                        },
+                        [evt](std::unique_ptr<CentralEventGenerator> &g) {
+                          g->GeneratePrimaryVertex(evt);
+                          double e = g->GetParticleEnergy();
+                          auto a = g->projected_area();
+                          Analysis::instance().addIncidentEnergy(e);
+                          Analysis::instance().addProjectedArea(a);
+                        }},
+             gen);
 }
 
 RunAction::RunAction() : G4UserRunAction() {}

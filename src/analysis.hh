@@ -1,11 +1,10 @@
 #pragma once
 
+#include <cstdint>
 #include <fstream>
-#include <unordered_map>
+#include <vector>
 
-#include "G4Accumulable.hh"
 #include "G4String.hh"
-#include "G4VAnalysisManager.hh"
 
 class G4Event;
 class G4Run;
@@ -14,66 +13,66 @@ class G4VHitsCollection;
 class CrystalHit;
 class VirtualHit;
 
-class AnalysisFileWrapper
-{
-    public:
-        AnalysisFileWrapper(
-            const G4String& prefix, bool isBinary);
-        ~AnalysisFileWrapper();
+class AnalysisFileWrapper {
+public:
+  AnalysisFileWrapper(const G4String &prefix, bool isBinary);
+  ~AnalysisFileWrapper();
 
-        std::ofstream& file()
-        { return outf; }
+  std::ofstream &file() { return outf; }
 
-        void reset(std::uint64_t newTimePfx);
+  void reset(std::uint64_t newTimePfx);
 
-        G4String buildFilename();
-    private:
-        std::uint64_t timePfx;
-        bool isBinary;
-        G4String fileNamePrefix;
-        std::ofstream outf;
+  G4String buildFilename();
+
+private:
+  std::uint64_t timePfx;
+  bool isBinary;
+  G4String fileNamePrefix;
+  std::ofstream outf;
 };
 
-class Analysis
-{
-    public:
-        static Analysis& instance();
-        static std::uint32_t currentRunNumber();
+class Analysis {
+public:
+  static Analysis &instance();
+  static std::uint32_t currentRunNumber();
 
-        void initFiles(G4bool isMaster);
-        void saveFiles(G4bool isMaster);
-        void saveEvent(const G4Event* evt);
+  void initFiles(G4bool isMaster);
+  void saveFiles(G4bool isMaster);
+  void saveEvent(const G4Event *evt);
 
-        void addIncidentEnergy(long double e);
-        void saveScintillated(std::size_t num);
+  void addIncidentEnergy(long double e);
+  void addProjectedArea(double);
+  void saveScintillated(std::size_t num);
 
-        Analysis(const Analysis&) =delete;
-        void operator=(const Analysis&) =delete;
-    private:
-        static std::uint32_t runNumber;
+  Analysis(const Analysis &) = delete;
+  void operator=(const Analysis &) = delete;
 
-        Analysis();
-        ~Analysis();
-        void processEvent(const G4Event* evt);
-        void processHitCollection(const G4VHitsCollection* hc);
-        void saveCrystalHits(const std::vector<VirtualHit*>* vec);
-        void saveIncidentSpectrumChunk();
-        void saveConfig();
+private:
+  static std::uint32_t runNumber;
 
-        void printSiHits(const std::vector<VirtualHit*>* vec);
-        void saveSiHits(const std::vector<VirtualHit*>* vec);
+  Analysis();
+  ~Analysis();
+  void processEvent(const G4Event *evt);
+  void processHitCollection(const G4VHitsCollection *hc);
+  void saveCrystalHits(const std::vector<VirtualHit *> *vec);
+  void saveIncidentSpectrumChunk();
+  void saveConfig();
 
-        bool saveSiEnergies;
-        bool saveSiPositions;
+  void printSiHits(const std::vector<VirtualHit *> *vec);
+  void saveSiHits(const std::vector<VirtualHit *> *vec);
 
-        std::vector<long double> incidentEnergiesChunk;
+  bool saveSiEnergies;
+  bool saveSiPositions;
 
-        using fw = AnalysisFileWrapper;
-        fw crystOut;
-        fw specIn;
-        fw siOut;
-        fw siEngOut;
-        fw scintOut;
-        fw cfgOut;
-        std::vector<fw*> wrappers;
+  std::vector<long double> incidentEnergiesChunk;
+  std::vector<double> projAreasChunk;
+
+  using fw = AnalysisFileWrapper;
+  fw crystOut;
+  fw specIn;
+  fw siOut;
+  fw siEngOut;
+  fw scintOut;
+  fw cfgOut;
+  std::vector<fw *> wrappers;
 };

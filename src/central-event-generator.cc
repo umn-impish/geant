@@ -103,7 +103,7 @@ void CentralEventGenerator::GeneratePrimaryVertex(G4Event *evt) {
   auto ax = bounding_dy * bounding_dz * std::abs(phat.x());
   auto ay = bounding_dx * bounding_dz * std::abs(phat.y());
   auto az = bounding_dx * bounding_dy * std::abs(phat.z());
-  auto atot = ax + ay + az;
+  atot = ax + ay + az;
 
   // Generate a random amount of projected area and "bin" it into face
   // probability bins using if/else statements.
@@ -138,3 +138,5 @@ void CentralEventGenerator::GeneratePrimaryVertex(G4Event *evt) {
   SetParticleMomentumDirection(phat);
   G4ParticleGun::GeneratePrimaryVertex(evt);
 }
+
+double CentralEventGenerator::projected_area() { return atot; }
