@@ -29,10 +29,10 @@ def main():
 
     # For just the IMPISH flight model
     base_generator_meta = {
-        "beam_dx_mm": 14 * 25.4,
-        "beam_dy_mm": 5.64 * 25.4,
-        "beam_dz_mm": 6.2 * 25.4,
-        "radius_mm": 200,
+        "bounding_dx_mm": 14 * 25.4,
+        "bounding_dy_mm": 5.64 * 25.4,
+        "bounding_dz_mm": 6.2 * 25.4,
+        "polar_rotation_degrees": -60,
     }
 
     # Configure the global settings
@@ -57,17 +57,12 @@ def main():
             "momentum_hg_kev": zlib.compress(
                 cur_meta["histogram"].ravel().astype("<u4"), level=6
             ),
-            "num_momentum_entries": cur_meta["histogram"].size,
             "momentum_bins_kev": cur_meta["bin_edges"].tolist(),
         }
         with open(direc / cen_gen_cfg_fn, "wb") as f:
             msgpack.pack(out, f)
 
         write_geant_config(cfg_fn := (direc / f"{pfx}.config.file"), config_map)
-
-        with open(direc / "macro.mac", "w") as f:
-            print("/run/printProgress 10000", file=f)
-            print("/run/beamOn 1000000", file=f)
 
         with open(script := direc / f"runme-{file.stem}", "w") as f:
             print("#!/bin/bash", file=f)
@@ -79,6 +74,11 @@ def main():
         # read, write, executable by anyone
         os.chmod(str(script), 0o700)
         print("done", file)
+
+    # Same macro for all of them
+    with open(direc / "macro.mac", "w") as f:
+        print("/run/printProgress 10000", file=f)
+        print("/run/beamOn 10000000", file=f)
 
 
 def read_geant_config(fn: pathlib.Path) -> dict[str, object]:
