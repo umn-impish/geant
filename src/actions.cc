@@ -55,13 +55,15 @@ void PrimaryGeneratorAction::GeneratePrimaries(G4Event *evt) {
                           g->GeneratePrimaryVertex(evt);
                           double e = g->GetParticleEnergy();
                           Analysis::instance().addIncidentEnergy(e);
+                          Analysis::instance().addEventId(evt->GetEventID());
                         },
                         [evt](std::unique_ptr<CentralEventGenerator> &g) {
                           g->GeneratePrimaryVertex(evt);
-                          double e = g->GetParticleEnergy();
-                          auto a = g->projected_area();
-                          Analysis::instance().addIncidentEnergy(e);
-                          Analysis::instance().addProjectedArea(a);
+                          Analysis::instance().addIncidentEnergy(
+                              static_cast<long double>(g->GetParticleEnergy()));
+                          Analysis::instance().addProjectedArea(
+                              g->projected_area());
+                          Analysis::instance().addEventId(evt->GetEventID());
                         }},
              gen);
 }

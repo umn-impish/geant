@@ -42,6 +42,7 @@ public:
 
   void addIncidentEnergy(long double e);
   void addProjectedArea(double);
+  void addEventId(G4int);
   void saveScintillated(std::size_t num);
 
   Analysis(const Analysis &) = delete;
@@ -66,6 +67,7 @@ private:
 
   std::vector<long double> incidentEnergiesChunk;
   std::vector<double> projAreasChunk;
+  std::vector<G4int> eventIdChunk;
 
   using fw = AnalysisFileWrapper;
   fw crystOut;

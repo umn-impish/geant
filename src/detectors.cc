@@ -87,7 +87,10 @@ G4bool CrystalSensitiveDetector::ProcessHits(G4Step *step,
   G4ThreeVector pos = step->GetPostStepPoint()->GetPosition();
   auto p = step->GetPreStepPoint()->GetMomentumDirection();
 
-  auto *hit = new CrystalHit(depositedEnergy, pos, p);
+  auto trackId = step->GetTrack()->GetTrackID();
+  auto evtId = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+
+  auto *hit = new CrystalHit(depositedEnergy, pos, p, trackId, evtId);
 
   hitsCollection->insert(hit);
   return true;
@@ -129,7 +132,10 @@ G4bool PerfectSensitiveDetector::ProcessHits(G4Step *step,
   G4ThreeVector pos = prePoint->GetPosition();
   auto momentum = prePoint->GetMomentumDirection();
 
-  auto *hit = new CrystalHit(energy, pos, momentum);
+  auto trackId = step->GetTrack()->GetTrackID();
+  auto evtId = G4RunManager::GetRunManager()->GetCurrentEvent()->GetEventID();
+
+  auto *hit = new CrystalHit(energy, pos, momentum, trackId, evtId);
   hitsCollection->insert(hit);
 
   return true;

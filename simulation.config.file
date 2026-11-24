@@ -2,18 +2,18 @@
 # absolute or relative path
 data-dir string data-out
 # prefix the folders saved
-save-prefix string whole-payload-response
+save-prefix string test-central-approach
 # Usually want to use the GPS,
 # unless you are producing a full response matrix.
 # Options: gps, central-generator
-generator-type string gps
+generator-type string central-generator
 
 # Required for the CentralEventGenerator
-central-generator-config string momentum-meta.json
+central-generator-config string central-test.msgpack
 
 save-each-cryst-hit-energy bool 0
 save-each-cryst-hit-momentum bool 0
-save-all-scintillator-positions bool 1
+save-all-scintillator-positions bool 0
 save-sipm-positions bool 0
 save-sipm-energies bool 0
 
@@ -25,9 +25,9 @@ lyso-attenuation-length double 50
 specular-sigma-alpha-deg double 2
 
 # World volume parameters (in units of mm, aka native G4 units)
-world-x double 10000
-world-y double 10000
-world-z double 10000
+world-x double 1000
+world-y double 1000
+world-z double 1000
 
 # Whether or not we want to save the track and event ids
 # for hits that are made

@@ -152,8 +152,18 @@ void Analysis::addProjectedArea(double a) {
   projAreasChunk.push_back(a);
 }
 
+/// Associate incident photons (event ID) with tracks and hits.
+void Analysis::addEventId(G4int id) {
+  G4AutoLock l(&dataMux);
+  eventIdChunk.push_back(id);
+}
+
 void Analysis::saveIncidentSpectrumChunk() {
   for (size_t i = 0; i < incidentEnergiesChunk.size(); ++i) {
+    if (GlobalConfigs::instance().configOption<bool>(
+            "save-track-identifiers")) {
+      specIn.file() << eventIdChunk[i] << ' ';
+    }
     auto e = incidentEnergiesChunk[i];
     specIn.file() << e / keV;
     if (i < projAreasChunk.size()) {
@@ -164,6 +174,7 @@ void Analysis::saveIncidentSpectrumChunk() {
 
   incidentEnergiesChunk.clear();
   projAreasChunk.clear();
+  eventIdChunk.clear();
 }
 
 void Analysis::printSiHits(const std::vector<VirtualHit *> *vec) {

@@ -46,7 +46,7 @@ private:
 class CrystalHit : public VirtualHit {
 public:
   CrystalHit(G4double depositedEnergy, const G4ThreeVector &position,
-             const G4ThreeVector &momentum, G4int trackId_ = 0, G4int eventId_ = 0);
+             const G4ThreeVector &momentum, G4int trackId_, G4int eventId_);
   ~CrystalHit() = default;
   const CrystalHit &operator=(const CrystalHit &rhs);
 
