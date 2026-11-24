@@ -31,7 +31,7 @@ struct CentralEventGenerator : public G4ParticleGun {
 
   void GeneratePrimaryVertex(G4Event *) override final;
   // Projected area of current vertex
-  double projected_area();
+  double projected_area() const;
 
   CentralEventGenerator() = delete;
   ~CentralEventGenerator() = default;

@@ -13,6 +13,12 @@ class G4VHitsCollection;
 class CrystalHit;
 class VirtualHit;
 
+struct PrimaryInfo {
+  double energy;
+  double area;
+  G4int id;
+};
+
 class AnalysisFileWrapper {
 public:
   AnalysisFileWrapper(const G4String &prefix, bool isBinary);
@@ -40,9 +46,7 @@ public:
   void saveFiles(G4bool isMaster);
   void saveEvent(const G4Event *evt);
 
-  void addIncidentEnergy(long double e);
-  void addProjectedArea(double);
-  void addEventId(G4int);
+  void addPrimaryInfo(struct PrimaryInfo &&);
   void saveScintillated(std::size_t num);
 
   Analysis(const Analysis &) = delete;
@@ -65,9 +69,7 @@ private:
   bool saveSiEnergies;
   bool saveSiPositions;
 
-  std::vector<long double> incidentEnergiesChunk;
-  std::vector<double> projAreasChunk;
-  std::vector<G4int> eventIdChunk;
+  std::vector<PrimaryInfo> primariesChunk;
 
   using fw = AnalysisFileWrapper;
   fw crystOut;

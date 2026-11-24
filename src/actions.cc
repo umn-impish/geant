@@ -53,17 +53,14 @@ PrimaryGeneratorAction::~PrimaryGeneratorAction() {}
 void PrimaryGeneratorAction::GeneratePrimaries(G4Event *evt) {
   std::visit(overloaded{[evt](std::unique_ptr<G4GeneralParticleSource> &g) {
                           g->GeneratePrimaryVertex(evt);
-                          double e = g->GetParticleEnergy();
-                          Analysis::instance().addIncidentEnergy(e);
-                          Analysis::instance().addEventId(evt->GetEventID());
+                          Analysis::instance().addPrimaryInfo(
+                              {g->GetParticleEnergy(), -1, evt->GetEventID()});
                         },
                         [evt](std::unique_ptr<CentralEventGenerator> &g) {
                           g->GeneratePrimaryVertex(evt);
-                          Analysis::instance().addIncidentEnergy(
-                              static_cast<long double>(g->GetParticleEnergy()));
-                          Analysis::instance().addProjectedArea(
-                              g->projected_area());
-                          Analysis::instance().addEventId(evt->GetEventID());
+                          Analysis::instance().addPrimaryInfo(
+                              {g->GetParticleEnergy(), g->projected_area(),
+                               evt->GetEventID()});
                         }},
              gen);
 }

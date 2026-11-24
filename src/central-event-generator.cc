@@ -22,7 +22,7 @@ CentralEventGenerator::CentralEventGenerator(
       polar_rotation{rotation}, momentum_bins{momentum_bins_},
       entries_per_axis{momentum_bins.size() - 1},
       momentum_dist{momentum_hg.begin(), momentum_hg.end()},
-      pos_unif{-0.5, 0.5} {
+      pos_unif{-0.5, 0.5}, atot{0.0} {
   if (entries_per_axis * entries_per_axis * entries_per_axis !=
       momentum_hg.size()) {
     throw std::runtime_error{"The momentum histogram provided is not a cube, "
@@ -139,4 +139,4 @@ void CentralEventGenerator::GeneratePrimaryVertex(G4Event *evt) {
   G4ParticleGun::GeneratePrimaryVertex(evt);
 }
 
-double CentralEventGenerator::projected_area() { return atot; }
+double CentralEventGenerator::projected_area() const { return atot; }

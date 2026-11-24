@@ -141,40 +141,22 @@ void Analysis::processHitCollection(const G4VHitsCollection *hc) {
   }
 }
 
-void Analysis::addIncidentEnergy(long double e) {
+void Analysis::addPrimaryInfo(struct PrimaryInfo &&inf) {
   G4AutoLock l(&dataMux);
-  incidentEnergiesChunk.push_back(e);
-}
-
-/// Required when producing full (angularly-weighted) response matrices.
-void Analysis::addProjectedArea(double a) {
-  G4AutoLock l(&dataMux);
-  projAreasChunk.push_back(a);
-}
-
-/// Associate incident photons (event ID) with tracks and hits.
-void Analysis::addEventId(G4int id) {
-  G4AutoLock l(&dataMux);
-  eventIdChunk.push_back(id);
+  primariesChunk.push_back(inf);
 }
 
 void Analysis::saveIncidentSpectrumChunk() {
-  for (size_t i = 0; i < incidentEnergiesChunk.size(); ++i) {
+  for (auto const &[energy, area, id] : primariesChunk) {
     if (GlobalConfigs::instance().configOption<bool>(
             "save-track-identifiers")) {
-      specIn.file() << eventIdChunk[i] << ' ';
+      specIn.file() << id << ' ';
     }
-    auto e = incidentEnergiesChunk[i];
-    specIn.file() << e / keV;
-    if (i < projAreasChunk.size()) {
-      specIn.file() << ' ' << projAreasChunk[i] / cm2;
-    }
+    specIn.file() << energy / keV;
+    specIn.file() << ' ' << area / cm2;
     specIn.file() << std::endl;
   }
-
-  incidentEnergiesChunk.clear();
-  projAreasChunk.clear();
-  eventIdChunk.clear();
+  primariesChunk.clear();
 }
 
 void Analysis::printSiHits(const std::vector<VirtualHit *> *vec) {
