@@ -20,6 +20,7 @@ def main():
     p.add_argument("--config-fn", type=str)
     p.add_argument("--geant-executable", type=str)
     p.add_argument("--geometry-directory", type=str)
+    p.add_argument("--polar-rotation", type=float)
     args = p.parse_args()
     direc = pathlib.Path(args.output_directory).resolve()
     momentum_direc = pathlib.Path(args.momentum_hg_direc).resolve()
@@ -32,7 +33,7 @@ def main():
         "bounding_dx_mm": 14 * 25.4,
         "bounding_dy_mm": 5.64 * 25.4,
         "bounding_dz_mm": 6.2 * 25.4,
-        "polar_rotation_degrees": -60,
+        "polar_rotation_degrees": -args.polar_rotation,
     }
 
     # Configure the global settings
