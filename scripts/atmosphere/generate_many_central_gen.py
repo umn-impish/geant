@@ -33,7 +33,7 @@ def main():
         "bounding_dx_mm": 14 * 25.4,
         "bounding_dy_mm": 5.64 * 25.4,
         "bounding_dz_mm": 6.2 * 25.4,
-        "polar_rotation_degrees": -args.polar_rotation,
+        "polar_rotation_degrees": args.polar_rotation,
     }
 
     # Configure the global settings
